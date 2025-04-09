@@ -1,0 +1,95 @@
+version: '4'
+
+services:
+
+  # Authentication DB
+  auth-db:
+    image: mysql:8.3.0
+    container_name: auth-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+#      MYSQL_DATABASE: auth_db
+#      MYSQL_USER: auth_user
+#      MYSQL_PASSWORD: auth_pass
+    ports:
+      - "3307:3306"
+    volumes:
+      - auth_data:/var/lib/mysql
+    networks:
+      - restaurant-network
+
+  # Menu DB
+  menu-db:
+    image: mysql:8.3.0
+    container_name: menu-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+#      MYSQL_DATABASE: menu_db
+#      MYSQL_USER: menu_user
+#      MYSQL_PASSWORD: menu_pass
+    ports:
+      - "3308:3306"
+    volumes:
+      - menu_data:/var/lib/mysql
+    networks:
+      - restaurant-network
+
+  # Order DB
+  order-db:
+    image: mysql:8.3.0
+    container_name: order-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+#      MYSQL_DATABASE: order_db
+#      MYSQL_USER: order_user
+#      MYSQL_PASSWORD: order_pass
+    ports:
+      - "3309:3306"
+    volumes:
+      - order_data:/var/lib/mysql
+    networks:
+      - restaurant-network
+
+  # Payment DB
+  payment-db:
+    image: mysql:8.3.0
+    container_name: payment-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+#      MYSQL_DATABASE: payment_db
+#      MYSQL_USER: payment_user
+#      MYSQL_PASSWORD: payment_pass
+    ports:
+      - "3310:3306"
+    volumes:
+      - payment_data:/var/lib/mysql
+    networks:
+      - restaurant-network
+
+  #inventory DB
+  inventory_db:
+    image: mysql:8.3.0
+    container_name: inventory-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+#      MYSQL_DATABASE: inventory_db
+#      MYSQL_USER: inventory_user
+#      MYSQL_PASSWORD: inventory_pass
+    ports:
+      - "3311:3306"
+    volumes:
+      - inventory_data:/var/lib/mysql
+    networks:
+      - restaurant-network
+
+volumes:
+  auth_data:
+  menu_data:
+  order_data:
+  payment_data:
+  inventory_data:
+
+
+networks:
+  restaurant-network:
+    driver: bridge
