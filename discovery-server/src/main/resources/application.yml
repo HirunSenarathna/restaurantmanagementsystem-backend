@@ -6,3 +6,12 @@ spring:
 
 
 
+## Actuator endpoints for health checks
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include: *
+#  endpoint:
+#    health:
+#      show-details: always
