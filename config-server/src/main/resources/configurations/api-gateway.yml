@@ -1,0 +1,19 @@
+#server:
+#  port: 8080
+#
+#spring:
+#  main:
+#      web-application-type: reactive
+#  cloud:
+#    gateway:
+#      discovery:
+#        locator:
+#          enabled: true
+#
+#
+#      routes:
+#        - id: user-service
+#          uri: lb:http://USER-SERVICE
+#          predicates:
+#            - Path=/api/users/**
+#

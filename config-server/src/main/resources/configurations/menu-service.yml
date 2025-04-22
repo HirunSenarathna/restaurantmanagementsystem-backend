@@ -1,0 +1,21 @@
+
+server:
+  port: 8081
+
+spring:
+  application:
+    name: menu-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/userdb?createDatabaseIfNotExist=true
+    username: root
+    password: root123
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+    show-sql: true
+
+

@@ -1,94 +1,158 @@
-version: '4'
+version: '3.8'
 
 services:
 
-  # Authentication DB
-  auth-db:
-    image: mysql:8.3.0
-    container_name: auth-mysql
+  # Keycloak for Authentication & Authorization
+  keycloak:
+    image: quay.io/keycloak/keycloak:22.0.5
+    container_name: keycloak
     environment:
-      MYSQL_ROOT_PASSWORD: root123
-#      MYSQL_DATABASE: auth_db
-#      MYSQL_USER: auth_user
-#      MYSQL_PASSWORD: auth_pass
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KC_DB=mysql
+      - KC_DB_URL=jdbc:mysql://mysql-keycloak:3306/keycloak
+      - KC_DB_USERNAME=keycloak
+      - KC_DB_PASSWORD=keycloak
+    ports:
+      - "8090:8080"
+    command: [ "start-dev" ]
+    depends_on:
+      mysql-keycloak:
+        condition: service_healthy
+    restart: on-failure
+    networks:
+      - restaurant-network
+
+
+
+  # Databases
+  mysql-user:
+    image: mysql:8.0
+    container_name: mysql-user
+    environment:
+      - MYSQL_DATABASE=userdb
+      - MYSQL_USER=user_service
+      - MYSQL_PASSWORD=root
+      - MYSQL_ROOT_PASSWORD=root123
+    volumes:
+      - mysql-user-data:/var/lib/mysql
     ports:
       - "3307:3306"
-    volumes:
-      - auth_data:/var/lib/mysql
     networks:
       - restaurant-network
 
-  # Menu DB
-  menu-db:
-    image: mysql:8.3.0
-    container_name: menu-mysql
+  #  mysql-menu:
+  #    image: mysql:8.0
+  #    container_name: mysql-menu
+  #    environment:
+  #      - MYSQL_DATABASE=menudb
+  #      - MYSQL_USER=menu_service
+  #      - MYSQL_PASSWORD=menu_password
+  #      - MYSQL_ROOT_PASSWORD=root_password
+  #    volumes:
+  #      - mysql-menu-data:/var/lib/mysql
+  #    ports:
+  #      - "3308:3306"
+  #    networks:
+  #      - restaurant-network
+  #
+  #  mysql-order:
+  #    image: mysql:8.0
+  #    container_name: mysql-order
+  #    environment:
+  #      - MYSQL_DATABASE=orderdb
+  #      - MYSQL_USER=order_service
+  #      - MYSQL_PASSWORD=order_password
+  #      - MYSQL_ROOT_PASSWORD=root_password
+  #    volumes:
+  #      - mysql-order-data:/var/lib/mysql
+  #    ports:
+  #      - "3309:3306"
+  #    networks:
+  #      - restaurant-network
+  #
+  #  mysql-payment:
+  #    image: mysql:8.0
+  #    container_name: mysql-payment
+  #    environment:
+  #      - MYSQL_DATABASE=paymentdb
+  #      - MYSQL_USER=payment_service
+  #      - MYSQL_PASSWORD=payment_password
+  #      - MYSQL_ROOT_PASSWORD=root_password
+  #    volumes:
+  #      - mysql-payment-data:/var/lib/mysql
+  #    ports:
+  #      - "3310:3306"
+  #    networks:
+  #      - restaurant-network
+  #
+  #  mysql-feedback:
+  #    image: mysql:8.0
+  #    container_name: mysql-feedback
+  #    environment:
+  #      - MYSQL_DATABASE=feedbackdb
+  #      - MYSQL_USER=feedback_service
+  #      - MYSQL_PASSWORD=feedback_password
+  #      - MYSQL_ROOT_PASSWORD=root_password
+  #    volumes:
+  #      - mysql-feedback-data:/var/lib/mysql
+  #    ports:
+  #      - "3311:3306"
+  #    networks:
+  #      - restaurant-network
+
+  mysql-keycloak:
+    image: mysql:8.0
+    container_name: mysql-keycloak
     environment:
-      MYSQL_ROOT_PASSWORD: root123
-#      MYSQL_DATABASE: menu_db
-#      MYSQL_USER: menu_user
-#      MYSQL_PASSWORD: menu_pass
-    ports:
-      - "3308:3306"
+      - MYSQL_DATABASE=keycloak
+      - MYSQL_USER=keycloak
+      - MYSQL_PASSWORD=keycloak
+      - MYSQL_ROOT_PASSWORD=root_password
     volumes:
-      - menu_data:/var/lib/mysql
+      - mysql-keycloak-data:/var/lib/mysql
+    networks:
+      - restaurant-network
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  # Kafka
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
     networks:
       - restaurant-network
 
-  # Order DB
-  order-db:
-    image: mysql:8.3.0
-    container_name: order-mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: root123
-#      MYSQL_DATABASE: order_db
-#      MYSQL_USER: order_user
-#      MYSQL_PASSWORD: order_pass
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
     ports:
-      - "3309:3306"
-    volumes:
-      - order_data:/var/lib/mysql
-    networks:
-      - restaurant-network
-
-  # Payment DB
-  payment-db:
-    image: mysql:8.3.0
-    container_name: payment-mysql
+      - "9092:9092"
     environment:
-      MYSQL_ROOT_PASSWORD: root123
-#      MYSQL_DATABASE: payment_db
-#      MYSQL_USER: payment_user
-#      MYSQL_PASSWORD: payment_pass
-    ports:
-      - "3310:3306"
-    volumes:
-      - payment_data:/var/lib/mysql
-    networks:
-      - restaurant-network
-
-  #inventory DB
-  inventory_db:
-    image: mysql:8.3.0
-    container_name: inventory-mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: root123
-#      MYSQL_DATABASE: inventory_db
-#      MYSQL_USER: inventory_user
-#      MYSQL_PASSWORD: inventory_pass
-    ports:
-      - "3311:3306"
-    volumes:
-      - inventory_data:/var/lib/mysql
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     networks:
       - restaurant-network
 
 volumes:
-  auth_data:
-  menu_data:
-  order_data:
-  payment_data:
-  inventory_data:
-
+  mysql-user-data:
+  #  mysql-menu-data:
+  #  mysql-order-data:
+  #  mysql-payment-data:
+  #  mysql-feedback-data:
+  mysql-keycloak-data:
 
 networks:
   restaurant-network:

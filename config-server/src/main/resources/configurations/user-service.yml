@@ -1,0 +1,49 @@
+server:
+  error:
+    include-message: always
+    include-stacktrace: always
+  port: 8083
+
+spring:
+  application:
+    name: user-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/userdb?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
+    username: root
+    password: root123
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+    show-sql: true
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+jwt:
+  secret: Um1zU2VjdXJlS2V5Rm9ySldUVG9rZW5HZW5lcmF0aW9uQW5kU2hvdWxkQmVLZXB0U2VjcmV0
+  expiration-ms: 86400000  # 24 hours in milliseconds
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+
+security:
+  filter:
+    disable: false
+
+logging:
+  level:
+    org.springframework.security: INFO
+    com.sdp.userservice: DEBUG
+    org.flywaydb: INFO
+
+
