@@ -8,7 +8,7 @@ import com.sdp.userservice.security.JwtTokenProvider;
 import com.sdp.userservice.security.TokenBlacklist;
 import com.sdp.userservice.service.AuthService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

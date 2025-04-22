@@ -3,22 +3,14 @@ package com.sdp.userservice.controller;
 
 import com.sdp.userservice.dto.Request.LoginRequest;
 import com.sdp.userservice.dto.Response.JwtResponse;
-import com.sdp.userservice.entity.Customer;
-import com.sdp.userservice.entity.Employee;
-import com.sdp.userservice.entity.User;
-import com.sdp.userservice.entity.Role;
+
 import com.sdp.userservice.security.JwtTokenProvider;
 import com.sdp.userservice.service.AuthService;
-import com.sdp.userservice.service.UserService;
+
 import jakarta.validation.Valid;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
