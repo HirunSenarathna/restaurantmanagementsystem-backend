@@ -3,43 +3,43 @@ version: '3.8'
 services:
 
   # Keycloak for Authentication & Authorization
-  keycloak:
-    image: quay.io/keycloak/keycloak:22.0.5
-    container_name: keycloak
-    environment:
-      - KEYCLOAK_ADMIN=admin
-      - KEYCLOAK_ADMIN_PASSWORD=admin
-      - KC_DB=mysql
-      - KC_DB_URL=jdbc:mysql://mysql-keycloak:3306/keycloak
-      - KC_DB_USERNAME=keycloak
-      - KC_DB_PASSWORD=keycloak
-    ports:
-      - "8090:8080"
-    command: [ "start-dev" ]
-    depends_on:
-      mysql-keycloak:
-        condition: service_healthy
-    restart: on-failure
-    networks:
-      - restaurant-network
+#  keycloak:
+#    image: quay.io/keycloak/keycloak:22.0.5
+#    container_name: keycloak
+#    environment:
+#      - KEYCLOAK_ADMIN=admin
+#      - KEYCLOAK_ADMIN_PASSWORD=admin
+#      - KC_DB=mysql
+#      - KC_DB_URL=jdbc:mysql://mysql-keycloak:3306/keycloak
+#      - KC_DB_USERNAME=keycloak
+#      - KC_DB_PASSWORD=keycloak
+#    ports:
+#      - "8090:8080"
+#    command: [ "start-dev" ]
+#    depends_on:
+#      mysql-keycloak:
+#        condition: service_healthy
+#    restart: on-failure
+#    networks:
+#      - restaurant-network
 
 
 
   # Databases
-  mysql-user:
-    image: mysql:8.0
-    container_name: mysql-user
-    environment:
-      - MYSQL_DATABASE=userdb
-      - MYSQL_USER=user_service
-      - MYSQL_PASSWORD=root
-      - MYSQL_ROOT_PASSWORD=root123
-    volumes:
-      - mysql-user-data:/var/lib/mysql
-    ports:
-      - "3307:3306"
-    networks:
-      - restaurant-network
+#  mysql-user:
+#    image: mysql:8.0
+#    container_name: mysql-user
+#    environment:
+#      - MYSQL_DATABASE=userdb
+#      - MYSQL_USER=user_service
+#      - MYSQL_PASSWORD=root
+#      - MYSQL_ROOT_PASSWORD=root123
+#    volumes:
+#      - mysql-user-data:/var/lib/mysql
+#    ports:
+#      - "3307:3306"
+#    networks:
+#      - restaurant-network
 
   #  mysql-menu:
   #    image: mysql:8.0
@@ -101,23 +101,23 @@ services:
   #    networks:
   #      - restaurant-network
 
-  mysql-keycloak:
-    image: mysql:8.0
-    container_name: mysql-keycloak
-    environment:
-      - MYSQL_DATABASE=keycloak
-      - MYSQL_USER=keycloak
-      - MYSQL_PASSWORD=keycloak
-      - MYSQL_ROOT_PASSWORD=root_password
-    volumes:
-      - mysql-keycloak-data:/var/lib/mysql
-    networks:
-      - restaurant-network
-    healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+#  mysql-keycloak:
+#    image: mysql:8.0
+#    container_name: mysql-keycloak
+#    environment:
+#      - MYSQL_DATABASE=keycloak
+#      - MYSQL_USER=keycloak
+#      - MYSQL_PASSWORD=keycloak
+#      - MYSQL_ROOT_PASSWORD=root_password
+#    volumes:
+#      - mysql-keycloak-data:/var/lib/mysql
+#    networks:
+#      - restaurant-network
+#    healthcheck:
+#      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
 
 
   # Kafka

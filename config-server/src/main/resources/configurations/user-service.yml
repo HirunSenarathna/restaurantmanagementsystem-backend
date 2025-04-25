@@ -42,7 +42,7 @@ security:
 
 logging:
   level:
-    org.springframework.security: INFO
+    org:springframework.security: INFO
     com.sdp.userservice: DEBUG
     org.flywaydb: INFO
 

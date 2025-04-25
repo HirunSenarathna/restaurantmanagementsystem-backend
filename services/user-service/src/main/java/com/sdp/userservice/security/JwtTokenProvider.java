@@ -3,7 +3,6 @@ package com.sdp.userservice.security;
 import com.sdp.userservice.config.JwtConfig;
 
 import io.jsonwebtoken.Jwts;
-import org.springframework.beans.factory.annotation.Autowired;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 
@@ -30,7 +29,7 @@ import java.util.Date;
 public class JwtTokenProvider {
 
     private final JwtConfig jwtConfig;
-    private final UserDetailsService userDetailsService;@Autowired
+    private final UserDetailsService userDetailsService;
     private final TokenBlacklist tokenBlacklist;
 
     public String generateToken(Authentication authentication) {
