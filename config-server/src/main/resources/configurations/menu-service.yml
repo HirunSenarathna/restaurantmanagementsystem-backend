@@ -6,7 +6,7 @@ spring:
   application:
     name: menu-service
   datasource:
-    url: jdbc:mysql://localhost:3306/userdb?createDatabaseIfNotExist=true
+    url: jdbc:mysql://localhost:3306/menudb?createDatabaseIfNotExist=true
     username: root
     password: root123
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -18,4 +18,27 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
     show-sql: true
 
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    topic:
+      menu-events: menu-event
 
+
+#jwt:
+#  secret: Um1zU2VjdXJlS2V5Rm9ySldUVG9rZW5HZW5lcmF0aW9uQW5kU2hvdWxkQmVLZXB0U2VjcmV0
+#  expiration-ms: 86400000  # 24 hours in milliseconds
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+logging:
+  level:
+    org.springframework.security: INFO
+    com.sdp.menuservice: DEBUG
+    org.flywaydb: INFO
