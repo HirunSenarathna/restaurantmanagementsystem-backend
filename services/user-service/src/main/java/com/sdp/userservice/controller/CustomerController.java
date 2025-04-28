@@ -26,7 +26,7 @@ public class CustomerController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('OWNER') or hasRole('CASHIER') or hasRole('CUSTOMER') or authentication.principal.username == @customerService.getCustomerById(#id).username")
+   // @PreAuthorize("hasRole('OWNER') or hasRole('CASHIER') or hasRole('CUSTOMER') or authentication.principal.username == @customerService.getCustomerById(#id).username")
     public ResponseEntity<CustomerResponse> getCustomerById(@PathVariable Long id) {
         return ResponseEntity.ok(customerService.getCustomerById(id));
     }

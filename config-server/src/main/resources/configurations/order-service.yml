@@ -1,0 +1,66 @@
+
+server:
+  port: 8091
+
+spring:
+  application:
+    name: order-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/orderdb?createDatabaseIfNotExist=true
+    username: root
+    password: root123
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+    show-sql: true
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: order-service-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: com.sdp.*
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+
+#jwt:
+#  secret: Um1zU2VjdXJlS2V5Rm9ySldUVG9rZW5HZW5lcmF0aW9uQW5kU2hvdWxkQmVLZXB0U2VjcmV0
+#  expiration-ms: 86400000  # 24 hours in milliseconds
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+logging:
+  level:
+    org.springframework.security: INFO
+    com.sdp.menuservice: DEBUG
+    org.flywaydb: INFO
+    org.springframework.cloud.openfeign: DEBUG
+    feign: DEBUG
+
+# Kafka topics
+kafka:
+  topics:
+    order-created: order-created-topic
+    order-updated: order-updated-topic
+    menu-updated: menu-updated-topic
+
+
+
+
+application:
+  config:
+    customer-url: http://localhost:8080/api/customers
+    menu-url: http://localhost:8080/api/menu

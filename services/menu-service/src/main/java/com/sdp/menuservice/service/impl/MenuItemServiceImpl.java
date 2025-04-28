@@ -1,7 +1,11 @@
 package com.sdp.menuservice.service.impl;
 
 import com.sdp.menuservice.dto.MenuItemDTO;
+import com.sdp.menuservice.dto.MenuItemVariantResponseDTO;
+import com.sdp.menuservice.dto.MenuItemWithVariantResponseDTO;
+import com.sdp.menuservice.dto.Request.MenuItemRequest;
 import com.sdp.menuservice.dto.Request.MenuItemRequestDTO;
+import com.sdp.menuservice.dto.Request.MenuItemVariantRequest;
 import com.sdp.menuservice.dto.Request.StockUpdateRequestDTO;
 import com.sdp.menuservice.model.MenuCategory;
 import com.sdp.menuservice.model.MenuItem;
@@ -17,8 +21,10 @@ import org.apache.kafka.common.errors.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -90,6 +96,7 @@ public class MenuItemServiceImpl implements MenuItemService {
 
         return mapToDTO(savedItem);
     }
+
 
     @Override
     @Transactional
@@ -190,6 +197,36 @@ public class MenuItemServiceImpl implements MenuItemService {
         return mapToDTO(updatedItem);
     }
 
+
+    @Override
+    public Optional<MenuItemWithVariantResponseDTO> findVariantByMenuItemAndVariantId(Long menuItemId, Long variantId) {
+        return variantRepository.findByMenuItemIdAndId(menuItemId, variantId)
+                .map(variant -> {
+                    MenuItem menuItem = variant.getMenuItem();
+                    MenuItemWithVariantResponseDTO dto = new MenuItemWithVariantResponseDTO();
+
+                    // Menu item details
+                    dto.setMenuItemId(menuItem.getId());
+                    dto.setMenuItemName(menuItem.getName());
+                    dto.setDescription(menuItem.getDescription());
+                    dto.setCategoryId(menuItem.getCategory().getId());
+                    dto.setCategoryName(menuItem.getCategory().getName());
+                    dto.setMenuItemAvailable(menuItem.isAvailable());
+
+                    // Variant details
+                    dto.setVariantId(variant.getId());
+                    dto.setSize(variant.getSize().name());
+                    dto.setVariant(variant.getVariant());
+                    dto.setPrice(variant.getPrice().doubleValue());
+                    dto.setStockQuantity(variant.getStockQuantity());
+                    dto.setVariantAvailable(variant.isAvailable());
+
+                    return dto;
+                });
+    }
+
+
+
     private MenuItemDTO mapToDTO(MenuItem menuItem) {
         MenuItemDTO dto = new MenuItemDTO();
         dto.setId(menuItem.getId());
@@ -218,4 +255,152 @@ public class MenuItemServiceImpl implements MenuItemService {
 
         return dto;
     }
+
+
+    //
+    // Menu Item methods
+    @Override
+    public MenuItem createMenuItem(MenuItemRequest request) {
+        MenuCategory category = categoryRepository.findById(request.getCategoryId())
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + request.getCategoryId()));
+
+        MenuItem menuItem = new MenuItem();
+        menuItem.setName(request.getName());
+        menuItem.setDescription(request.getDescription());
+        menuItem.setCategory(category);
+        menuItem.setAvailable(request.isAvailable());
+        return menuItemRepository.save(menuItem);
+    }
+
+
+//    @Override
+//    public List<MenuItem> getAllMenuItems() {
+//        return menuItemRepository.findAll();
+//    }
+//
+//    @Override
+//    public MenuItem getMenuItemById(Long id) {
+//        return menuItemRepository.findById(id)
+//                .orElseThrow(() -> new ResourceNotFoundException("Menu item not found with id: " + id));
+//    }
+//
+//    @Override
+//    public List<MenuItem> getMenuItemsByCategory(Long categoryId) {
+//        return menuItemRepository.findByCategoryId(categoryId);
+//    }
+
+//    @Override
+//    public MenuItem updateMenuItem(Long id, MenuItemRequest request) {
+//        MenuItem menuItem = getMenuItemById(id);
+//
+//        menuItem.setName(request.getName());
+//        menuItem.setDescription(request.getDescription());
+//
+//        if (!menuItem.getCategory().getId().equals(request.getCategoryId())) {
+//            MenuCategory newCategory = categoryRepository.findById(request.getCategoryId())
+//                    .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + request.getCategoryId()));
+//            menuItem.setCategory(newCategory);
+//        }
+//
+//        menuItem.setAvailable(request.isAvailable());
+//        return menuItemRepository.save(menuItem);
+//    }
+
+//    @Override
+//    @Transactional
+//    public void deleteMenuItem(Long id) {
+//        MenuItem menuItem = getMenuItemById(id);
+//        // Check if there are variants for this menu item
+//        List<MenuItemVariant> variants = variantRepository.findByMenuItem(menuItem);
+//        if (!variants.isEmpty()) {
+//            throw new IllegalStateException("Cannot delete menu item with associated variants");
+//        }
+//        menuItemRepository.delete(menuItem);
+//    }
+
+    // Menu Item Variant methods
+    @Override
+    public MenuItemVariant createMenuItemVariant(MenuItemVariantRequest request) {
+        MenuItem menuItem = menuItemRepository.findById(request.getMenuItemId())
+                .orElseThrow(() -> new ResourceNotFoundException("Menu item not found with id: " + request.getMenuItemId()));
+
+        MenuItemVariant variant = new MenuItemVariant();
+        variant.setMenuItem(menuItem);
+        variant.setVariant(request.getVariant());
+        variant.setSize(ItemSize.valueOf(request.getSize()));
+        variant.setPrice(new BigDecimal(request.getPrice()));
+        variant.setStockQuantity(request.getStockQuantity());
+        variant.setAvailable(request.isAvailable());
+        return variantRepository.save(variant);
+    }
+
+    @Override
+    public List<MenuItemVariant> getAllMenuItemVariants() {
+        return variantRepository.findAll();
+    }
+
+    @Override
+    public MenuItemVariant getMenuItemVariantById(Long id) {
+        return variantRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Menu item variant not found with id: " + id));
+    }
+
+    @Override
+    public List<MenuItemVariant> getVariantsByMenuItem(Long menuItemId) {
+        return variantRepository.findByMenuItemId(menuItemId);
+    }
+
+    @Override
+    public Integer getAvailableQuantity(Long variantId) {
+        MenuItemVariant variant = getMenuItemVariantById(variantId);
+        return variant.isAvailable() ? variant.getStockQuantity() : 0;
+    }
+
+    @Override
+    public MenuItemVariant updateMenuItemVariant(Long id, MenuItemVariantRequest request) {
+        MenuItemVariant variant = getMenuItemVariantById(id);
+
+        if (!variant.getMenuItem().getId().equals(request.getMenuItemId())) {
+            MenuItem newMenuItem = menuItemRepository.findById(request.getMenuItemId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Menu item not found with id: " + request.getMenuItemId()));
+            variant.setMenuItem(newMenuItem);
+        }
+
+        variant.setVariant(request.getVariant());
+        variant.setSize(ItemSize.valueOf(request.getSize()));
+        variant.setPrice(new BigDecimal(request.getPrice()));
+        variant.setStockQuantity(request.getStockQuantity());
+        variant.setAvailable(request.isAvailable());
+        return variantRepository.save(variant);
+    }
+
+    @Override
+    @Transactional
+    public void reduceMenuItemVariantQuantity(Long id, Integer amount) {
+        MenuItemVariant variant = getMenuItemVariantById(id);
+        int newQuantity = variant.getStockQuantity() - amount;
+
+        // If amount is negative, we're actually increasing the quantity (for returns/cancellations)
+        if (newQuantity < 0 && amount > 0) {
+            throw new IllegalStateException("Cannot reduce below zero. Current stock: " +
+                    variant.getStockQuantity() + ", Requested reduction: " + amount);
+        }
+
+        variant.setStockQuantity(newQuantity);
+
+        // If we're out of stock, set available to false
+        if (newQuantity <= 0 && amount > 0) {
+            variant.setAvailable(false);
+        }
+
+        variantRepository.save(variant);
+    }
+
+    @Override
+    public void deleteMenuItemVariant(Long id) {
+        MenuItemVariant variant = getMenuItemVariantById(id);
+        variantRepository.delete(variant);
+    }
+
+
 }

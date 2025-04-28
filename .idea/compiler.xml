@@ -17,9 +17,19 @@
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.36/lombok-1.18.36.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.36/lombok-1.18.36.jar" />
         </processorPath>
         <module name="menu-service" />
         <module name="user-service" />
+      </profile>
+      <profile name="Annotation profile for order-service" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
+        </processorPath>
+        <module name="order-service" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -32,6 +42,7 @@
       <module name="config-server" options="-parameters" />
       <module name="discovery-server" options="-parameters" />
       <module name="menu-service" options="-parameters" />
+      <module name="order-service" options="-parameters" />
       <module name="user-service" options="-parameters" />
     </option>
   </component>

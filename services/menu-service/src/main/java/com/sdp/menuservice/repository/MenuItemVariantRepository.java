@@ -1,5 +1,6 @@
 package com.sdp.menuservice.repository;
 
+import com.sdp.menuservice.dto.MenuItemDTO;
 import com.sdp.menuservice.model.ItemSize;
 import com.sdp.menuservice.model.MenuItem;
 import com.sdp.menuservice.model.MenuItemVariant;
@@ -16,4 +17,8 @@ public interface MenuItemVariantRepository extends JpaRepository<MenuItemVariant
     List<MenuItemVariant> findByMenuItem(MenuItem menuItem);
     List<MenuItemVariant> findByMenuItemAndAvailableTrue(MenuItem menuItem);
     Optional<MenuItemVariant> findByMenuItemAndSizeAndVariant(MenuItem menuItem, ItemSize size, String variant);
+
+    Optional<MenuItemVariant> findByMenuItemIdAndId(Long menuItemId, Long variantId);
+
+    List<MenuItemVariant> findByMenuItemId(Long menuItemId);
 }
