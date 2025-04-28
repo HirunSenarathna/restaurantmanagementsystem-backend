@@ -2,8 +2,12 @@ package com.sdp.menuservice.controller;
 
 import com.sdp.menuservice.dto.MenuCategoryDTO;
 import com.sdp.menuservice.dto.MenuItemDTO;
+import com.sdp.menuservice.dto.MenuItemVariantResponseDTO;
+import com.sdp.menuservice.dto.MenuItemWithVariantResponseDTO;
 import com.sdp.menuservice.dto.Request.MenuItemRequestDTO;
+import com.sdp.menuservice.dto.Request.MenuItemVariantRequest;
 import com.sdp.menuservice.dto.Request.StockUpdateRequestDTO;
+import com.sdp.menuservice.model.MenuItemVariant;
 import com.sdp.menuservice.service.MenuCategoryService;
 import com.sdp.menuservice.service.MenuItemService;
 import jakarta.validation.Valid;
@@ -13,7 +17,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/menu")
@@ -92,6 +99,16 @@ public class MenuController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/items/{menuItemId}/variants/{variantId}")
+    public ResponseEntity<Optional<MenuItemWithVariantResponseDTO>> getVariantDetails(
+            @PathVariable Long menuItemId,
+            @PathVariable Long variantId
+    ) {
+        Optional<MenuItemWithVariantResponseDTO> variant = menuItemService.findVariantByMenuItemAndVariantId(menuItemId, variantId);
+        return ResponseEntity.ok(variant);
+    }
+
+
     @PutMapping("/items/{id}/variants/{variantId}/stock")
 //    @PreAuthorize("hasAnyRole('OWNER', 'WAITER')")
     public ResponseEntity<MenuItemDTO> updateMenuItemStock(
@@ -108,4 +125,61 @@ public class MenuController {
             @RequestParam boolean available) {
         return ResponseEntity.ok(menuItemService.updateMenuItemAvailability(id, available));
     }
+
+
+    // Menu Item Variant endpoints
+    @PostMapping("/menu-item-variants")
+    public ResponseEntity<MenuItemVariant> createMenuItemVariant(@RequestBody MenuItemVariantRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(menuItemService.createMenuItemVariant(request));
+    }
+
+    @GetMapping("/menu-item-variants")
+    public ResponseEntity<List<MenuItemVariant>> getAllMenuItemVariants() {
+        return ResponseEntity.ok(menuItemService.getAllMenuItemVariants());
+    }
+
+    @GetMapping("/menu-item-variants/{id}")
+    public ResponseEntity<Map<String, Object>> getMenuItemVariantById(@PathVariable Long id) {
+        MenuItemVariant variant = menuItemService.getMenuItemVariantById(id);
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", variant.getId());
+        response.put("menuItemId", variant.getMenuItem().getId());
+        response.put("menuItemName", variant.getMenuItem().getName());
+        response.put("variant", variant.getVariant());
+        response.put("size", variant.getSize().toString());
+        response.put("price", variant.getPrice());
+        response.put("stockQuantity", variant.getStockQuantity());
+        response.put("available", variant.isAvailable());
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/menu-item-variants/menu-item/{menuItemId}")
+    public ResponseEntity<List<MenuItemVariant>> getVariantsByMenuItem(@PathVariable Long menuItemId) {
+        return ResponseEntity.ok(menuItemService.getVariantsByMenuItem(menuItemId));
+    }
+
+    @GetMapping("/menu-item-variants/{id}/available-quantity")
+    public ResponseEntity<Integer> getAvailableQuantity(@PathVariable Long id) {
+        return ResponseEntity.ok(menuItemService.getAvailableQuantity(id));
+    }
+
+    @PutMapping("/menu-item-variants/{id}")
+    public ResponseEntity<MenuItemVariant> updateMenuItemVariant(@PathVariable Long id, @RequestBody MenuItemVariantRequest request) {
+        return ResponseEntity.ok(menuItemService.updateMenuItemVariant(id, request));
+    }
+
+    @PutMapping("/menu-item-variants/{id}/quantity/reduce")
+    public ResponseEntity<Void> reduceMenuItemVariantQuantity(
+            @PathVariable Long id,
+            @RequestParam("amount") Integer amount) {
+        menuItemService.reduceMenuItemVariantQuantity(id, amount);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/menu-item-variants/{id}")
+    public ResponseEntity<Void> deleteMenuItemVariant(@PathVariable Long id) {
+        menuItemService.deleteMenuItemVariant(id);
+        return ResponseEntity.noContent().build();
+    }
+
 }

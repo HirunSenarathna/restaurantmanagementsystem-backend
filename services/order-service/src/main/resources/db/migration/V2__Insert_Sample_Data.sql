@@ -1,0 +1,38 @@
+-- -- Insert sample orders
+-- INSERT INTO orders (
+--     customer_id, customer_name, waiter_id, waiter_name, table_number,
+--     order_status, order_time, estimated_delivery_time,
+--     completion_time, total_amount, special_instructions, is_paid,
+--     created_at, updated_at
+-- ) VALUES
+--       (1, 'John Doe', 101, 'Alice', 5, 'PLACED', NOW(), NOW() + INTERVAL 30 MINUTE, NULL, 1100.00, 'Less spicy', FALSE, NOW(), NOW()),
+--       (2, 'Jane Smith', 102, 'Bob', 3, 'IN_PROGRESS', NOW(), NOW() + INTERVAL 20 MINUTE, NULL, 950.00, 'No onions', FALSE, NOW(), NOW()),
+--       (3, 'Mark Johnson', 103, 'Charlie', 2, 'COMPLETED', NOW() - INTERVAL 1 HOUR, NOW() - INTERVAL 30 MINUTE, NOW(), 1150.00, NULL, TRUE, NOW(), NOW());
+--
+-- -- Insert sample order items with variant info
+-- -- Order 1: John Doe
+-- INSERT INTO order_items (
+--     order_id, menu_item_id, variant_id, variant_info, menu_item_name, quantity,
+--     unit_price, sub_total, special_instructions,
+--     created_at, updated_at
+-- ) VALUES
+--       (1, 1, 1, 'SMALL', 'Vegetable Kottu', 2, 300.00, 600.00, 'Less spicy', NOW(), NOW()),
+--       (1, 7, 14, 'MEDIUM', 'Iced Coffee', 2, 250.00, 500.00, 'Medium ice', NOW(), NOW());
+--
+-- -- Order 2: Jane Smith
+-- INSERT INTO order_items (
+--     order_id, menu_item_id, variant_id, variant_info, menu_item_name, quantity,
+--     unit_price, sub_total, special_instructions,
+--     created_at, updated_at
+-- ) VALUES
+--       (2, 2, 4, 'LARGE', 'Chicken Kottu', 1, 550.00, 550.00, 'Extra spicy', NOW(), NOW()),
+--       (2, 6, 12, 'REGULAR', 'Chicken Kotthu Roll', 2, 200.00, 400.00, NULL, NOW(), NOW());
+--
+-- -- Order 3: Mark Johnson
+-- INSERT INTO order_items (
+--     order_id, menu_item_id, variant_id, variant_info, menu_item_name, quantity,
+--     unit_price, sub_total, special_instructions,
+--     created_at, updated_at
+-- ) VALUES
+--       (3, 4, 8, 'LARGE', 'Chicken Fried Rice', 2, 450.00, 900.00, 'Extra chicken', NOW(), NOW()),
+--       (3, 7, 13, 'SMALL', 'Iced Coffee', 1, 250.00, 250.00, 'Less sugar', NOW(), NOW());

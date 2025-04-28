@@ -12,6 +12,7 @@ spring:
 
 
       routes:
+
         - id: user-auth
           uri: lb:http://user-service
           predicates:
@@ -28,9 +29,17 @@ spring:
           predicates:
             - Path=/api/employees/**
 
+
+
         - id: menu-service
           uri: lb:http://menu-service
           predicates:
             - Path=/api/menu/**
 #          filters:
 #            - AuthenticationFilter
+
+
+        - id: order-service
+          uri: lb:http://order-service
+          predicates:
+            - Path=/api/orders/**

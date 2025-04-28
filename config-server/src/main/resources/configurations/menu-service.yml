@@ -27,9 +27,9 @@ spring:
       menu-events: menu-event
 
 
-#jwt:
-#  secret: Um1zU2VjdXJlS2V5Rm9ySldUVG9rZW5HZW5lcmF0aW9uQW5kU2hvdWxkQmVLZXB0U2VjcmV0
-#  expiration-ms: 86400000  # 24 hours in milliseconds
+jwt:
+  secret: Um1zU2VjdXJlS2V5Rm9ySldUVG9rZW5HZW5lcmF0aW9uQW5kU2hvdWxkQmVLZXB0U2VjcmV0
+  expiration-ms: 86400000  # 24 hours in milliseconds
 
 management:
   endpoints:
