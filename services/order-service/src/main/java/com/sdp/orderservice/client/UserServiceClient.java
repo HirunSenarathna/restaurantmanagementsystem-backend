@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.Map;
 
-@FeignClient(name = "user-service", fallback = UserServiceClientFallback.class, url = "${application.config.customer-url}")
+@FeignClient(name = "user-service",  url = "${application.config.customer-url}")
 public interface UserServiceClient {
 
     @GetMapping("/{id}")
@@ -15,4 +15,5 @@ public interface UserServiceClient {
 
     @GetMapping("/api/users/{id}/role")
     ResponseEntity<String> getUserRole(@PathVariable("id") Long id);
+
 }

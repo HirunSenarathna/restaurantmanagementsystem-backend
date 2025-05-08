@@ -22,6 +22,11 @@ public class MenuItem {
 
     private String description;
 
+    private String imageUrl;
+
+    // Added field to store Cloudinary public ID for reference
+    private String imagePublicId;
+
     @ManyToOne
     @JoinColumn(name = "category_id", nullable = false)
     private MenuCategory category;

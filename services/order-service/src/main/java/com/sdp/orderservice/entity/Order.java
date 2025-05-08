@@ -1,10 +1,13 @@
 package com.sdp.orderservice.entity;
 
+import com.sdp.orderservice.dto.PaymentMethod;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -18,10 +21,12 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class Order {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private Long customerId;
 
     private String customerName;
@@ -30,40 +35,78 @@ public class Order {
 
     private String waiterName;
 
+    @Column(nullable = false)
     private Integer tableNumber;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private OrderStatus orderStatus;
 
+    @CreationTimestamp
     private LocalDateTime orderTime;
 
-    private LocalDateTime estimatedDeliveryTime;
 
-    private LocalDateTime completionTime;
-
+    @Column(precision = 10, scale = 2, nullable = false)
     private BigDecimal totalAmount;
 
+    @Column(length = 500)
     private String specialInstructions;
 
+    @Column(nullable = false)
     private Boolean isPaid;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod paymentMethod;
+
+    private String transactionId;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "order_id")
+    @Builder.Default
     private List<OrderItem> items = new ArrayList<>();
 
-
-    // Helper method to add an item to the order
     public void addItem(OrderItem item) {
-        if (this.items == null) {
-            this.items = new ArrayList<>();
-        }
         items.add(item);
-        item.setOrder(this);
     }
 
-
-    // Helper method to remove an item from the order
-    public void removeItem(OrderItem item) {
-        items.remove(item);
-        item.setOrder(null);
-    }
+//    @Id
+//    @GeneratedValue(strategy = GenerationType.IDENTITY)
+//    private Long id;
+//
+//    private Long customerId;
+//    private String customerName;
+//    private Long waiterId;
+//    private String waiterName;
+//    private Long cashierId;
+//    private String cashierName;
+//
+//    private Integer tableNumber;
+//
+//    @Enumerated(EnumType.STRING)
+//    private OrderStatus orderStatus;
+//
+//    private LocalDateTime orderTime;
+//    private LocalDateTime estimatedDeliveryTime;
+//    private LocalDateTime completionTime;
+//
+//    private String specialInstructions;
+//
+//    private Boolean isPaid;
+//    private String paymentMethod;
+//    private String paymentStatus;
+//    private String paymentId;
+//    private LocalDateTime paymentTime;
+//
+//    private BigDecimal totalAmount;
+//
+//    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+//    private List<OrderItem> items;
+//
+//    public void addItem(OrderItem item) {
+//        item.setOrder(this);
+//        this.items.add(item);
+//    }
 }

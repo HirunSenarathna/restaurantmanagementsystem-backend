@@ -1,5 +1,6 @@
 package com.sdp.orderservice.dto;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -23,8 +24,15 @@ public class OrderRequest {
 
     private String specialInstructions;
 
+    @NotNull(message = "Payment method is required")
+    private PaymentMethod paymentMethod;
+
+
+
+    private String returnUrl;
+
     @NotEmpty(message = "Order must contain at least one item")
-    private List<OrderItemRequest> items;
+    private List<@Valid OrderItemRequest> items;
 
     @Data
     @NoArgsConstructor
@@ -33,7 +41,7 @@ public class OrderRequest {
         @NotNull(message = "Menu item ID is required")
         private Long menuItemId;
 
-        @NotNull(message = "Variant ID is required")
+        @NotNull(message = "Menu item variant ID is required")
         private Long menuItemVariantId;
 
         @NotNull(message = "Quantity is required")

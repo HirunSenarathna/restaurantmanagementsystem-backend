@@ -15,7 +15,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-
 public class OrderDTO {
     private Long id;
     private Long customerId;
@@ -25,11 +24,11 @@ public class OrderDTO {
     private Integer tableNumber;
     private OrderStatus orderStatus;
     private LocalDateTime orderTime;
-    private LocalDateTime estimatedDeliveryTime;
-    private LocalDateTime completionTime;
     private BigDecimal totalAmount;
     private String specialInstructions;
     private Boolean isPaid;
+    private PaymentMethod paymentMethod;
+    private String transactionId;
     private List<OrderItemDTO> items;
 
 }

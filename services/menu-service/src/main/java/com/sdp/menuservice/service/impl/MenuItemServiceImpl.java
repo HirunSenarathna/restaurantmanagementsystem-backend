@@ -14,9 +14,11 @@ import com.sdp.menuservice.model.ItemSize;
 import com.sdp.menuservice.repository.MenuCategoryRepository;
 import com.sdp.menuservice.repository.MenuItemRepository;
 import com.sdp.menuservice.repository.MenuItemVariantRepository;
+import com.sdp.menuservice.service.CloudinaryService;
 import com.sdp.menuservice.service.MenuItemService;
 import com.sdp.menuservice.service.kafka.MenuEventProducer;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.errors.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,17 +26,21 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MenuItemServiceImpl implements MenuItemService {
 
     private final MenuItemRepository menuItemRepository;
     private final MenuCategoryRepository categoryRepository;
     private final MenuItemVariantRepository variantRepository;
     private final MenuEventProducer menuEventProducer;
+
+    private final CloudinaryService cloudinaryService;
 
     @Override
     public List<MenuItemDTO> getAllMenuItems() {
@@ -75,6 +81,22 @@ public class MenuItemServiceImpl implements MenuItemService {
         menuItem.setCategory(category);
         menuItem.setAvailable(true);
 
+        // Handle base64 image upload if provided
+        if (menuItemDTO.getImageBase64() != null && !menuItemDTO.getImageBase64().isEmpty()) {
+            try {
+                // Remove data URL prefix if present (e.g., "data:image/png;base64,")
+                String base64Data = menuItemDTO.getImageBase64().startsWith("data:image")
+                        ? menuItemDTO.getImageBase64().substring(menuItemDTO.getImageBase64().indexOf(",") + 1)
+                        : menuItemDTO.getImageBase64();
+                Map<?, ?> uploadResult = cloudinaryService.uploadBase64Image(base64Data);
+                menuItem.setImageUrl((String) uploadResult.get("secure_url"));
+                menuItem.setImagePublicId((String) uploadResult.get("public_id"));
+            } catch (Exception e) {
+                log.error("Failed to upload base64 image for menu item: {}", menuItemDTO.getName(), e);
+                throw new RuntimeException("Failed to upload image for menu item", e);
+            }
+        }
+
         MenuItem savedItem = menuItemRepository.save(menuItem);
 
         if (menuItemDTO.getVariants() != null && !menuItemDTO.getVariants().isEmpty()) {
@@ -111,6 +133,26 @@ public class MenuItemServiceImpl implements MenuItemService {
         menuItem.setDescription(menuItemDTO.getDescription());
         menuItem.setCategory(category);
 
+        // Handle base64 image update if provided
+        if (menuItemDTO.getImageBase64() != null && !menuItemDTO.getImageBase64().isEmpty()) {
+            try {
+                // Delete old image if it exists
+                if (menuItem.getImagePublicId() != null) {
+                    cloudinaryService.deleteImage(menuItem.getImagePublicId());
+                }
+                // Upload new base64 image
+                String base64Data = menuItemDTO.getImageBase64().startsWith("data:image")
+                        ? menuItemDTO.getImageBase64().substring(menuItemDTO.getImageBase64().indexOf(",") + 1)
+                        : menuItemDTO.getImageBase64();
+                Map<?, ?> uploadResult = cloudinaryService.uploadBase64Image(base64Data);
+                menuItem.setImageUrl((String) uploadResult.get("secure_url"));
+                menuItem.setImagePublicId((String) uploadResult.get("public_id"));
+            } catch (Exception e) {
+                log.error("Failed to update base64 image for menu item: {}", id, e);
+                throw new RuntimeException("Failed to update image for menu item", e);
+            }
+        }
+
         MenuItem updatedItem = menuItemRepository.save(menuItem);
 
         // Update variants
@@ -142,12 +184,22 @@ public class MenuItemServiceImpl implements MenuItemService {
     @Override
     @Transactional
     public void deleteMenuItem(Long id) {
-        if (!menuItemRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Menu item not found with id: " + id);
-        }
+
+        MenuItem menuItem = menuItemRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Menu item not found with id: " + id));
+
+            // Delete image from Cloudinary if exists
+            if (menuItem.getImagePublicId() != null) {
+                try {
+                    cloudinaryService.deleteImage(menuItem.getImagePublicId());
+                } catch (Exception e) {
+                    log.error("Failed to delete image for menu item: {}", id, e);
+                    // Continue with deletion even if image deletion fails
+                }
+            }
 
         // Delete related variants first
-        MenuItem menuItem = menuItemRepository.findById(id).get();
+//        MenuItem menuItem = menuItemRepository.findById(id).get();
         List<MenuItemVariant> variants = variantRepository.findByMenuItem(menuItem);
         variantRepository.deleteAll(variants);
 
@@ -213,6 +265,7 @@ public class MenuItemServiceImpl implements MenuItemService {
                     dto.setCategoryName(menuItem.getCategory().getName());
                     dto.setMenuItemAvailable(menuItem.isAvailable());
 
+
                     // Variant details
                     dto.setVariantId(variant.getId());
                     dto.setSize(variant.getSize().name());
@@ -235,6 +288,8 @@ public class MenuItemServiceImpl implements MenuItemService {
         dto.setCategoryId(menuItem.getCategory().getId());
         dto.setCategoryName(menuItem.getCategory().getName());
         dto.setAvailable(menuItem.isAvailable());
+        dto.setImageUrl(menuItem.getImageUrl());
+
 
         List<MenuItemVariant> variants = variantRepository.findByMenuItem(menuItem);
         List<MenuItemDTO.MenuItemVariantDTO> variantDTOs = new ArrayList<>();
@@ -259,18 +314,18 @@ public class MenuItemServiceImpl implements MenuItemService {
 
     //
     // Menu Item methods
-    @Override
-    public MenuItem createMenuItem(MenuItemRequest request) {
-        MenuCategory category = categoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + request.getCategoryId()));
-
-        MenuItem menuItem = new MenuItem();
-        menuItem.setName(request.getName());
-        menuItem.setDescription(request.getDescription());
-        menuItem.setCategory(category);
-        menuItem.setAvailable(request.isAvailable());
-        return menuItemRepository.save(menuItem);
-    }
+//    @Override
+//    public MenuItem createMenuItem(MenuItemRequest request) {
+//        MenuCategory category = categoryRepository.findById(request.getCategoryId())
+//                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + request.getCategoryId()));
+//
+//        MenuItem menuItem = new MenuItem();
+//        menuItem.setName(request.getName());
+//        menuItem.setDescription(request.getDescription());
+//        menuItem.setCategory(category);
+//        menuItem.setAvailable(request.isAvailable());
+//        return menuItemRepository.save(menuItem);
+//    }
 
 
 //    @Override

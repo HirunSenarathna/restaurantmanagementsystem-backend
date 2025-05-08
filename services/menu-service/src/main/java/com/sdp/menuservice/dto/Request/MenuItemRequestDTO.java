@@ -1,12 +1,15 @@
 package com.sdp.menuservice.dto.Request;
 
 import com.sdp.menuservice.model.ItemSize;
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -21,6 +24,8 @@ public class MenuItemRequestDTO {
 
     @NotNull(message = "Category ID is required")
     private Long categoryId;
+
+    private String imageBase64;
 
     private List<VariantRequest> variants;
 
