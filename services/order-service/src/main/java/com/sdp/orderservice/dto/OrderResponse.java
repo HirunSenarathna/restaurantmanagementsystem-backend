@@ -21,8 +21,12 @@ public class OrderResponse {
     private Integer tableNumber;
     private OrderStatus orderStatus;
     private LocalDateTime orderTime;
-    private LocalDateTime estimatedDeliveryTime;
     private BigDecimal totalAmount;
     private List<OrderItemDTO> items;
     private String message;
+
+    // Payment-related fields
+    private Long paymentId;
+    private String paymentLink;
+    private PaymentStatus paymentStatus;
 }

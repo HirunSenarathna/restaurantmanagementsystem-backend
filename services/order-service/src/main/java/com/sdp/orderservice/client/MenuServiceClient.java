@@ -26,4 +26,5 @@ public interface MenuServiceClient {
     ResponseEntity<Void> reduceMenuItemVariantQuantity(
             @PathVariable("id") Long id,
             @RequestParam("amount") Integer amount);
+
 }

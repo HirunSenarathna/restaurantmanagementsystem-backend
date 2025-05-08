@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -34,4 +35,23 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @Query("SELECT o FROM Order o WHERE o.customerId = :customerId ORDER BY o.orderTime DESC")
     List<Order> findRecentOrdersByCustomerId(@Param("customerId") Long customerId, Pageable pageable);
+
+
+
+///
+
+    @Query("SELECT o FROM Order o WHERE o.customerId = :customerId AND o.orderStatus = 'DELIVERED' ORDER BY o.orderTime DESC")
+    List<Order> findDeliveredOrdersByCustomer(@Param("customerId") Long customerId);
+
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.customerId = :customerId AND o.orderTime >= :startDate")
+    Long countOrdersByCustomerSince(
+            @Param("customerId") Long customerId,
+            @Param("startDate") LocalDateTime startDate);
+
+    @Query("SELECT SUM(o.totalAmount) FROM Order o WHERE o.orderStatus != 'CANCELLED' AND o.orderTime >= :startDate AND o.orderTime <= :endDate")
+    BigDecimal calculateRevenueForPeriod(
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
+
+
 }

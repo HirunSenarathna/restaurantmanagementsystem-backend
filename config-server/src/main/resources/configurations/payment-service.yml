@@ -1,0 +1,47 @@
+server:
+  port: 8092
+
+spring:
+  application:
+    name: payment-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/paymentdb?createDatabaseIfNotExist=true
+    username: root
+    password: root123
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+    show-sql: true
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: order-service-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: com.sdp.*
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+kafka:
+  topics:
+    payment-events: payment-events
+    order-events: order-events
+
+payment:
+  gateway:
+    stripe:
+        api-key: ${STRIPE_API_KEY:sk_test_sample_key}
+        webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_sample_secret}
+        url: https://api.stripe.com/v1
+
+application:
+  config:
+    customer-url: http://localhost:8080/api/customers
+    order-url: http://localhost:8080/api/orders

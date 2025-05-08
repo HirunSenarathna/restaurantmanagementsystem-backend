@@ -26,8 +26,8 @@ INSERT INTO menu_item_variants (menu_item_id, size, variant, price, stock_quanti
                                                                                         (3, 'LARGE', null, 400.00, 20),
                                                                                         (4, 'SMALL', null, 300.00, 22),
                                                                                         (4, 'LARGE', null, 450.00, 18),
-                                                                                        (5, null, 'Kiri Samba', 350.00, 30),
-                                                                                        (5, null, 'Basmathi', 400.00, 25),
+                                                                                        (5, 'SMALL', 'Kiri Samba', 350.00, 30),
+                                                                                        (5, 'LARGE', 'Basmathi', 400.00, 25),
                                                                                         (6, null, null, 150.00, 40),
                                                                                         (7, 'SMALL', null, 200.00, 50),
                                                                                         (7, 'LARGE', null, 300.00, 40);

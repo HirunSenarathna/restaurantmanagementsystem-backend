@@ -16,6 +16,8 @@ public class OrderItemDTO {
     private Long id;
     private Long menuItemId;
     private String menuItemName;
+    private String variant;
+//    private ItemSize size;
     private Integer quantity;
     private BigDecimal unitPrice;
     private BigDecimal subTotal;

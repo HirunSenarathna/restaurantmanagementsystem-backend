@@ -32,19 +32,19 @@ public class CustomerController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('OWNER') or hasRole('CASHIER')")
+    //@PreAuthorize("hasRole('OWNER') or hasRole('CASHIER')")
     public ResponseEntity<List<CustomerResponse>> getAllCustomers() {
         return ResponseEntity.ok(customerService.getAllCustomers());
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('OWNER') or hasRole('CUSTOMER') or authentication.principal.username == @customerService.getCustomerById(#id).username")
+    //@PreAuthorize("hasRole('OWNER') or hasRole('CUSTOMER') or authentication.principal.username == @customerService.getCustomerById(#id).username")
     public ResponseEntity<CustomerResponse> updateCustomer(@PathVariable Long id, @Valid @RequestBody CustomerRegistrationRequest updateRequest) {
         return ResponseEntity.ok(customerService.updateCustomer(id, updateRequest));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('OWNER') or hasRole('CUSTOMER')")
+    //@PreAuthorize("hasRole('OWNER') or hasRole('CUSTOMER')")
     public ResponseEntity<Void> deleteCustomer(@PathVariable Long id) {
         customerService.deleteCustomer(id);
         return ResponseEntity.noContent().build();

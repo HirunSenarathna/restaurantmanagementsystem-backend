@@ -16,6 +16,7 @@ public class MenuItemDTO {
     private Long categoryId;
     private String categoryName;
     private boolean available;
+    private String imageUrl;
     private List<MenuItemVariantDTO> variants;
 
     @Data

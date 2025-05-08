@@ -1,9 +1,6 @@
 package com.sdp.orderservice.service;
 
-import com.sdp.orderservice.dto.OrderDTO;
-import com.sdp.orderservice.dto.OrderRequest;
-import com.sdp.orderservice.dto.OrderResponse;
-import com.sdp.orderservice.dto.OrderStatusUpdateDTO;
+import com.sdp.orderservice.dto.*;
 import com.sdp.orderservice.entity.OrderStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -36,4 +33,14 @@ public interface OrderService {
     List<OrderDTO> getUnpaidOrders();
 
     OrderResponse reorderPreviousOrder(Long previousOrderId, Long customerId);
+
+    //
+
+
+
+    OrderDTO markOrderAsPaid(Long orderId, PaymentMethod paymentMethod, String transactionId);
+
+    OrderDTO processInPersonPayment(Long orderId, PaymentRequest paymentRequest);
+
+
 }

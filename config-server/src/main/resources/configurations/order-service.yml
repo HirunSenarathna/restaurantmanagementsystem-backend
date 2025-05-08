@@ -12,7 +12,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
@@ -64,3 +64,4 @@ application:
   config:
     customer-url: http://localhost:8080/api/customers
     menu-url: http://localhost:8080/api/menu
+    payment-url: http://localhost:8080/api/payments

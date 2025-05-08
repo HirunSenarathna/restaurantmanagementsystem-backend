@@ -17,5 +17,5 @@ public class OrderStatusUpdateDTO {
     @NotNull(message = "New status is required")
     private OrderStatus newStatus;
 
-    private String notes;
+    //private String notes;
 }

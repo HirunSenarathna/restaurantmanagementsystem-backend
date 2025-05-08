@@ -1,15 +1,13 @@
 package com.sdp.orderservice.controller;
 
-import com.sdp.orderservice.dto.OrderDTO;
-import com.sdp.orderservice.dto.OrderRequest;
-import com.sdp.orderservice.dto.OrderResponse;
-import com.sdp.orderservice.dto.OrderStatusUpdateDTO;
+import com.sdp.orderservice.dto.*;
 import com.sdp.orderservice.entity.OrderStatus;
 import com.sdp.orderservice.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -118,4 +116,34 @@ public class OrderController {
         OrderResponse response = orderService.reorderPreviousOrder(previousOrderId, customerId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+    //
+
+
+
+
+
+
+    @PutMapping("/{orderId}/pay")
+    public ResponseEntity<OrderDTO> markOrderAsPaid(
+            @PathVariable Long orderId,
+            @RequestParam PaymentMethod method,
+            @RequestParam String transactionId
+    ) {
+        return ResponseEntity.ok(orderService.markOrderAsPaid(orderId, method, transactionId));
+    }
+
+    @PostMapping("/{orderId}/pay/in-person")
+    public ResponseEntity<OrderDTO> processInPersonPayment(
+            @PathVariable Long orderId,
+            @RequestBody PaymentRequest paymentRequest
+    ) {
+        return ResponseEntity.ok(orderService.processInPersonPayment(orderId, paymentRequest));
+    }
+
+
+
+
+
+
 }

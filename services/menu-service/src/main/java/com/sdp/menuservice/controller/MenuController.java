@@ -25,6 +25,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/menu")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:4200")
 public class MenuController {
 
     private final MenuItemService menuItemService;
