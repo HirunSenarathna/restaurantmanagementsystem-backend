@@ -123,7 +123,7 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     private CustomerResponse mapToCustomerResponse(Customer customer) {
-        return (CustomerResponse) CustomerResponse.builder()
+        return CustomerResponse.builder()
                 .id(customer.getId())
                 .firstname(customer.getFirstname())
                 .lastname(customer.getLastname())
@@ -135,6 +135,5 @@ public class CustomerServiceImpl implements CustomerService {
                 .createdAt(customer.getCreatedAt())
                 .updatedAt(customer.getUpdatedAt())
                 .build();
-
     }
 }
