@@ -29,22 +29,24 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public JwtResponse login(LoginRequest loginRequest) {
         try {
-            System.out.println(loginRequest + " login in authservice");
+            // Find user by identifier (username, email, or mobile number)
+            User user = userRepository.findByUsername(loginRequest.getIdentifier())
+                    .or(() -> userRepository.findByEmail(loginRequest.getIdentifier()))
+                    .or(() -> userRepository.findByPhone(loginRequest.getIdentifier()))
+                    .orElseThrow(() -> new BadCredentialsException("User not found with the provided identifier"));
+
+            System.out.println(user);
+
+            // Authenticate using the username and password
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            loginRequest.getUsername(),
+                            user.getUsername(),
                             loginRequest.getPassword()
                     )
             );
 
-            System.out.println("Authenticated: " + authentication.isAuthenticated() );
-
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String jwt = tokenProvider.generateToken(authentication);
-            System.out.println("Genarated jwt: " + jwt);
-
-            User user = userRepository.findByUsername(loginRequest.getUsername())
-                    .orElseThrow(() -> new BadCredentialsException("User not found"));
 
             return JwtResponse.builder()
                     .token(jwt)
@@ -54,9 +56,37 @@ public class AuthServiceImpl implements AuthService {
                     .build();
 
         } catch (Exception e) {
-            e.printStackTrace();  // logs full stack trace to console
             throw new BadCredentialsException("Login failed: " + e.getMessage(), e);
         }
+
+//            System.out.println(loginRequest + " login in authservice");
+//            Authentication authentication = authenticationManager.authenticate(
+//                    new UsernamePasswordAuthenticationToken(
+//                            loginRequest.getUsername(),
+//                            loginRequest.getPassword()
+//                    )
+//            );
+//
+//            System.out.println("Authenticated: " + authentication.isAuthenticated() );
+//
+//            SecurityContextHolder.getContext().setAuthentication(authentication);
+//            String jwt = tokenProvider.generateToken(authentication);
+//            System.out.println("Genarated jwt: " + jwt);
+//
+//            User user = userRepository.findByUsername(loginRequest.getUsername())
+//                    .orElseThrow(() -> new BadCredentialsException("User not found"));
+//
+//            return JwtResponse.builder()
+//                    .token(jwt)
+//                    .id(user.getId())
+//                    .username(user.getUsername())
+//                    .role(user.getRole())
+//                    .build();
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();  // logs full stack trace to console
+//            throw new BadCredentialsException("Login failed: " + e.getMessage(), e);
+//        }
     }
 
     @Override

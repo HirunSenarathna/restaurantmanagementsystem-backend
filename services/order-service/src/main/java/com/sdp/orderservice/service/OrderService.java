@@ -42,5 +42,9 @@ public interface OrderService {
 
     OrderDTO processInPersonPayment(Long orderId, PaymentRequest paymentRequest);
 
+    void updateOrderPaymentStatus(Long orderId, boolean isPaid, PaymentMethod method, String transactionId);
+    void recordPaymentFailure(Long orderId, String errorMessage);
+    void updateOrderWithPaymentLink(Long orderId, Long paymentId, String paymentLink);
+
 
 }

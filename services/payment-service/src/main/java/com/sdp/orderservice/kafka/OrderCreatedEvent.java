@@ -1,7 +1,6 @@
-package com.sdp.paymentservice.kafka;
+package com.sdp.orderservice.kafka;
 
 
-import com.sdp.paymentservice.dto.OrderDTO;
 import com.sdp.paymentservice.model.PaymentMethod;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,10 +20,9 @@ public class OrderCreatedEvent {
     private Long customerId;
     private BigDecimal totalAmount;
     private PaymentMethod paymentMethod;
-    private boolean isOnline;
-    private OrderDTO orderDTO;
-    private String eventType;
-    private LocalDateTime timestamp;
+    private Boolean requiresPayment;
+    private String returnUrl;  // For online payments
+    private LocalDateTime orderTime;
 
 //    private Long orderId;
 //    private Long customerId;

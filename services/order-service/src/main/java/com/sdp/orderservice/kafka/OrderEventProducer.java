@@ -19,6 +19,20 @@ import java.time.LocalDateTime;
 @Slf4j
 public class OrderEventProducer {
 
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+
+    @Value("${kafka.topics.order-created}")
+    private String orderCreatedTopic;
+
+    public void publishOrderCreatedEvent(OrderCreatedEvent event) {
+        try {
+            kafkaTemplate.send(orderCreatedTopic, String.valueOf(event.getOrderId()), event);
+            log.info("Order created event published successfully for order: {}", event.getOrderId());
+        } catch (Exception e) {
+            log.error("Failed to publish order created event: {}", e.getMessage(), e);
+        }
+    }
+
 
 //    private final KafkaTemplate<String, Object> kafkaTemplate;
 //
@@ -130,79 +144,79 @@ public class OrderEventProducer {
 //    }
 
     //v2
-
-    private final KafkaTemplate<String, OrderEvent> kafkaTemplate;
-
-    private static final String ORDER_CREATED_TOPIC = "order-created";
-    private static final String ORDER_UPDATED_TOPIC = "order-updated";
-    private static final String ORDER_NOTIFICATION_TOPIC = "order-notification";
-
-    /**
-     * Publishes an event when a new order is created
-     *
-     * @param orderDTO the created order
-     */
-    public void publishOrderCreatedEvent(OrderDTO orderDTO) {
-        log.info("Publishing order created event for order ID: {}", orderDTO.getId());
-
-        OrderEvent event = OrderEvent.builder()
-                .eventType(EventType.ORDER_CREATED)
-                .orderId(orderDTO.getId())
-                .customerId(orderDTO.getCustomerId())
-                .waiterId(orderDTO.getWaiterId())
-                .orderStatus(orderDTO.getOrderStatus())
-                .totalAmount(orderDTO.getTotalAmount())
-                .orderData(orderDTO)
-                .build();
-
-        try {
-            kafkaTemplate.send(ORDER_CREATED_TOPIC, String.valueOf(orderDTO.getId()), event);
-            publishOrderNotification(event);
-            log.info("Order created event published successfully");
-        } catch (Exception e) {
-            log.error("Failed to publish order created event", e);
-        }
-    }
-
-    /**
-     * Publishes an event when an order status is updated
-     *
-     * @param order the updated order
-     */
-    public void publishOrderStatusUpdatedEvent(Order order) {
-        log.info("Publishing order status updated event for order ID: {}", order.getId());
-
-        OrderEvent event = OrderEvent.builder()
-                .eventType(EventType.ORDER_STATUS_UPDATED)
-                .orderId(order.getId())
-                .customerId(order.getCustomerId())
-                .waiterId(order.getWaiterId())
-                .orderStatus(order.getOrderStatus())
-                .totalAmount(order.getTotalAmount())
-                .build();
-
-        try {
-            kafkaTemplate.send(ORDER_UPDATED_TOPIC, String.valueOf(order.getId()), event);
-            publishOrderNotification(event);
-            log.info("Order status updated event published successfully");
-        } catch (Exception e) {
-            log.error("Failed to publish order status updated event", e);
-        }
-    }
-
-    /**
-     * Publishes notification events for other services
-     *
-     * @param event the order event
-     */
-    private void publishOrderNotification(OrderEvent event) {
-        try {
-            kafkaTemplate.send(ORDER_NOTIFICATION_TOPIC, String.valueOf(event.getOrderId()), event);
-            log.info("Order notification published successfully");
-        } catch (Exception e) {
-            log.error("Failed to publish order notification", e);
-        }
-    }
+//
+//    private final KafkaTemplate<String, OrderEvent> kafkaTemplate;
+//
+//    private static final String ORDER_CREATED_TOPIC = "order-created";
+//    private static final String ORDER_UPDATED_TOPIC = "order-updated";
+//    private static final String ORDER_NOTIFICATION_TOPIC = "order-notification";
+//
+//    /**
+//     * Publishes an event when a new order is created
+//     *
+//     * @param orderDTO the created order
+//     */
+//    public void publishOrderCreatedEvent(OrderDTO orderDTO) {
+//        log.info("Publishing order created event for order ID: {}", orderDTO.getId());
+//
+//        OrderEvent event = OrderEvent.builder()
+//                .eventType(EventType.ORDER_CREATED)
+//                .orderId(orderDTO.getId())
+//                .customerId(orderDTO.getCustomerId())
+//                .waiterId(orderDTO.getWaiterId())
+//                .orderStatus(orderDTO.getOrderStatus())
+//                .totalAmount(orderDTO.getTotalAmount())
+//                .orderData(orderDTO)
+//                .build();
+//
+//        try {
+//            kafkaTemplate.send(ORDER_CREATED_TOPIC, String.valueOf(orderDTO.getId()), event);
+//            publishOrderNotification(event);
+//            log.info("Order created event published successfully");
+//        } catch (Exception e) {
+//            log.error("Failed to publish order created event", e);
+//        }
+//    }
+//
+//    /**
+//     * Publishes an event when an order status is updated
+//     *
+//     * @param order the updated order
+//     */
+//    public void publishOrderStatusUpdatedEvent(Order order) {
+//        log.info("Publishing order status updated event for order ID: {}", order.getId());
+//
+//        OrderEvent event = OrderEvent.builder()
+//                .eventType(EventType.ORDER_STATUS_UPDATED)
+//                .orderId(order.getId())
+//                .customerId(order.getCustomerId())
+//                .waiterId(order.getWaiterId())
+//                .orderStatus(order.getOrderStatus())
+//                .totalAmount(order.getTotalAmount())
+//                .build();
+//
+//        try {
+//            kafkaTemplate.send(ORDER_UPDATED_TOPIC, String.valueOf(order.getId()), event);
+//            publishOrderNotification(event);
+//            log.info("Order status updated event published successfully");
+//        } catch (Exception e) {
+//            log.error("Failed to publish order status updated event", e);
+//        }
+//    }
+//
+//    /**
+//     * Publishes notification events for other services
+//     *
+//     * @param event the order event
+//     */
+//    private void publishOrderNotification(OrderEvent event) {
+//        try {
+//            kafkaTemplate.send(ORDER_NOTIFICATION_TOPIC, String.valueOf(event.getOrderId()), event);
+//            log.info("Order notification published successfully");
+//        } catch (Exception e) {
+//            log.error("Failed to publish order notification", e);
+//        }
+//    }
 
     //v1
 

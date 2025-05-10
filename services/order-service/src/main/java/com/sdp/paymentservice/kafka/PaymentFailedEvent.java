@@ -1,6 +1,7 @@
 package com.sdp.paymentservice.kafka;
 
-import com.sdp.paymentservice.model.PaymentMethod;
+
+import com.sdp.orderservice.dto.PaymentMethod;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

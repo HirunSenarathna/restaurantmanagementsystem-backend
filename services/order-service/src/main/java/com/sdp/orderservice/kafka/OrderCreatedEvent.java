@@ -22,10 +22,9 @@ public class OrderCreatedEvent {
     private Long customerId;
     private BigDecimal totalAmount;
     private PaymentMethod paymentMethod;
-    private boolean isOnline;
-    private OrderDTO orderDTO;
-    private String eventType;
-    private LocalDateTime timestamp;
+    private Boolean requiresPayment;
+    private String returnUrl;  // For online payments
+    private LocalDateTime orderTime;
 
 //    private Long orderId;
 //    private Long customerId;

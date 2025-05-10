@@ -1,4 +1,4 @@
-package com.sdp.orderservice.kafka;
+package com.sdp.paymentservice.kafka;
 
 import com.sdp.orderservice.dto.PaymentStatus;
 import lombok.AllArgsConstructor;
@@ -12,12 +12,15 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderPaymentUpdatedEvent {
-
+public class PaymentInitiatedEvent {
+    private Long paymentId;
     private Long orderId;
-    private String paymentId;
-    private PaymentStatus paymentStatus;
+    private String paymentLink;
     private String transactionId;
-    private String eventType;
+    private PaymentStatus status;
     private LocalDateTime timestamp;
+
+    // Optional additional fields
+    private Long customerId;
+    private String method;
 }
