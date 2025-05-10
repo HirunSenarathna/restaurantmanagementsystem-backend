@@ -52,6 +52,7 @@ public class AuthServiceImpl implements AuthService {
                     .token(jwt)
                     .id(user.getId())
                     .username(user.getUsername())
+                    .firstname(user.getFirstname())
                     .role(user.getRole())
                     .build();
 
@@ -59,34 +60,7 @@ public class AuthServiceImpl implements AuthService {
             throw new BadCredentialsException("Login failed: " + e.getMessage(), e);
         }
 
-//            System.out.println(loginRequest + " login in authservice");
-//            Authentication authentication = authenticationManager.authenticate(
-//                    new UsernamePasswordAuthenticationToken(
-//                            loginRequest.getUsername(),
-//                            loginRequest.getPassword()
-//                    )
-//            );
-//
-//            System.out.println("Authenticated: " + authentication.isAuthenticated() );
-//
-//            SecurityContextHolder.getContext().setAuthentication(authentication);
-//            String jwt = tokenProvider.generateToken(authentication);
-//            System.out.println("Genarated jwt: " + jwt);
-//
-//            User user = userRepository.findByUsername(loginRequest.getUsername())
-//                    .orElseThrow(() -> new BadCredentialsException("User not found"));
-//
-//            return JwtResponse.builder()
-//                    .token(jwt)
-//                    .id(user.getId())
-//                    .username(user.getUsername())
-//                    .role(user.getRole())
-//                    .build();
-//
-//        } catch (Exception e) {
-//            e.printStackTrace();  // logs full stack trace to console
-//            throw new BadCredentialsException("Login failed: " + e.getMessage(), e);
-//        }
+
     }
 
     @Override

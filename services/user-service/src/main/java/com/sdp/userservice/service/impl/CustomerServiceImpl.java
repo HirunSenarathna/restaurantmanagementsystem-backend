@@ -38,6 +38,10 @@ public class CustomerServiceImpl implements CustomerService {
             throw new IllegalArgumentException("Email already exists");
         }
 
+        if(userRepository.existsByPhone(request.getPhone())){
+            throw new IllegalArgumentException("Phone already exists");
+        }
+
         // Create and save new customer
         Customer customer = Customer.builder()
                 .firstname(request.getFirstname())
