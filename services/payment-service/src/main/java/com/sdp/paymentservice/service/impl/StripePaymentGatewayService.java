@@ -3,6 +3,15 @@ package com.sdp.paymentservice.service.impl;
 import com.sdp.paymentservice.dto.PaymentRequest;
 import com.sdp.paymentservice.exception.PaymentException;
 import com.sdp.paymentservice.service.PaymentGatewayService;
+import com.stripe.Stripe;
+import com.stripe.exception.StripeException;
+import com.stripe.model.PaymentIntent;
+import com.stripe.model.Refund;
+import com.stripe.model.checkout.Session;
+import com.stripe.param.PaymentIntentCreateParams;
+import com.stripe.param.RefundCreateParams;
+import com.stripe.param.checkout.SessionCreateParams;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -22,25 +31,58 @@ public class StripePaymentGatewayService implements PaymentGatewayService {
     @Value("${payment.gateway.stripe.webhook-secret}")
     private String webhookSecret;
 
+    @PostConstruct
+    public void init() {
+        // Initialize Stripe with your API key
+        Stripe.apiKey = apiKey;
+        log.info("Stripe payment gateway initialized");
+    }
+
     @Override
     public Map<String, String> initiatePayment(String referenceId, BigDecimal amount, String description, String returnUrl) {
         log.info("Initiating payment through Stripe: {}", referenceId);
         try {
-            // In a real implementation, you would use Stripe SDK
-            // For now, we'll simulate the response
+            // Convert amount to cents (Stripe uses the smallest currency unit)
+            long amountInCents = amount.multiply(new BigDecimal(100)).longValue();
 
+            // Create a Checkout Session for redirect-based payments
+            SessionCreateParams params = SessionCreateParams.builder()
+                    .setMode(SessionCreateParams.Mode.PAYMENT)
+                    .setSuccessUrl(returnUrl + "?session_id={CHECKOUT_SESSION_ID}")
+                    .setCancelUrl(returnUrl + "?canceled=true")
+                    .setClientReferenceId(referenceId)
+                    .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
+                    .addLineItem(
+                            SessionCreateParams.LineItem.builder()
+                                    .setPriceData(
+                                            SessionCreateParams.LineItem.PriceData.builder()
+                                                    .setCurrency("usd")
+                                                    .setUnitAmount(amountInCents)
+                                                    .setProductData(
+                                                            SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                                                    .setName(description)
+                                                                    .build()
+                                                    )
+                                                    .build()
+                                    )
+                                    .setQuantity(1L)
+                                    .build()
+                    )
+                    .build();
+
+            // Create the Checkout Session
+            Session session = Session.create(params);
+
+            // Prepare response
             Map<String, String> response = new HashMap<>();
-            String mockTransactionId = "trx_" + UUID.randomUUID().toString().substring(0, 8);
-            String mockPaymentLink = "https://checkout.stripe.com/pay/" + mockTransactionId;
-
-            response.put("transactionId", mockTransactionId);
-            response.put("paymentLink", mockPaymentLink);
+            response.put("transactionId", session.getId());
+            response.put("paymentLink", session.getUrl());
             response.put("status", "pending");
 
-            log.info("Payment initiated with transaction ID: {}", mockTransactionId);
+            log.info("Payment initiated with transaction ID: {}", session.getId());
             return response;
 
-        } catch (Exception e) {
+        } catch (StripeException e) {
             log.error("Error initiating payment: {}", e.getMessage());
             throw new PaymentException("Failed to initiate payment: " + e.getMessage());
         }
@@ -50,44 +92,104 @@ public class StripePaymentGatewayService implements PaymentGatewayService {
     public Map<String, String> processPayment(String referenceId, BigDecimal amount) {
         log.info("Processing payment through Stripe: {}", referenceId);
         try {
-            // In a real implementation, you would use Stripe SDK
-            // For now, we'll simulate the response
+            long amountInCents = amount.multiply(new BigDecimal(100)).longValue();
+
+            PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
+                    .setCurrency("usd")
+                    .setAmount(amountInCents)
+                    .setDescription("Payment for reference: " + referenceId)
+                    .setAutomaticPaymentMethods(
+                            PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
+                                    .setEnabled(true)
+                                    .setAllowRedirects(PaymentIntentCreateParams.AutomaticPaymentMethods.AllowRedirects.NEVER)
+                                    .build()
+                    )
+                    .addPaymentMethodType("card") // Restrict to card payments
+                    .build();
+
+            PaymentIntent paymentIntent = PaymentIntent.create(params);
 
             Map<String, String> response = new HashMap<>();
-            String mockTransactionId = "trx_" + UUID.randomUUID().toString().substring(0, 8);
-            String mockReceiptUrl = "https://receipt.stripe.com/" + mockTransactionId;
+            response.put("transactionId", paymentIntent.getId());
+            response.put("clientSecret", paymentIntent.getClientSecret()); // For client-side confirmation
+            response.put("status", paymentIntent.getStatus());
 
-            response.put("transactionId", mockTransactionId);
-            response.put("receiptUrl", mockReceiptUrl);
-            response.put("status", "completed");
-
-            log.info("Payment processed with transaction ID: {}", mockTransactionId);
+            log.info("Payment processed with transaction ID: {}", paymentIntent.getId());
             return response;
 
-        } catch (Exception e) {
+        } catch (StripeException e) {
             log.error("Error processing payment: {}", e.getMessage());
             throw new PaymentException("Failed to process payment: " + e.getMessage());
         }
     }
 
+//    @Override
+//    public Map<String, String> processPayment(String referenceId, BigDecimal amount) {
+//        log.info("Processing payment through Stripe: {}", referenceId);
+//        try {
+//            // Convert amount to cents
+//            long amountInCents = amount.multiply(new BigDecimal(100)).longValue();
+//
+//            // Create a PaymentIntent for direct charging without redirect
+//            PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
+//                    .setCurrency("usd")
+//                    .setAmount(amountInCents)
+//                    .setDescription("Payment for reference: " + referenceId)
+//                    .setAutomaticPaymentMethods(
+//                            PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
+//                                    .setEnabled(true)
+//                                    .setAllowRedirects(PaymentIntentCreateParams.AutomaticPaymentMethods.AllowRedirects.NEVER)
+//                                    .build()
+//                    )
+//                    // For testing in dev, use a test card token
+////                    .setPaymentMethod("card") // Test payment method
+//                    .addPaymentMethodType("card")
+//                    .setConfirm(true)
+//                    .build();
+//
+//            PaymentIntent paymentIntent = PaymentIntent.create(params);
+//
+//            // Prepare response
+//            Map<String, String> response = new HashMap<>();
+//            response.put("transactionId", paymentIntent.getId());
+//            response.put("receiptUrl", "https://dashboard.stripe.com/test/payments/" + paymentIntent.getId());
+//            response.put("status", paymentIntent.getStatus());
+//
+//            log.info("Payment processed with transaction ID: {}", paymentIntent.getId());
+//            return response;
+//
+//        } catch (StripeException e) {
+//            log.error("Error processing payment: {}", e.getMessage());
+//            throw new PaymentException("Failed to process payment: " + e.getMessage());
+//        }
+//    }
+
     @Override
     public Map<String, String> processRefund(String transactionId, BigDecimal amount, String reason) {
         log.info("Processing refund for transaction: {}", transactionId);
         try {
-            // In a real implementation, you would use Stripe SDK
-            // For now, we'll simulate the response
+            // Convert amount to cents
+            long amountInCents = amount.multiply(new BigDecimal(100)).longValue();
 
+            // Create refund
+            RefundCreateParams params = RefundCreateParams.builder()
+                    .setPaymentIntent(transactionId)
+                    .setAmount(amountInCents)
+                    .setReason(convertToStripeRefundReason(reason))
+                    .build();
+
+            Refund refund = Refund.create(params);
+
+            // Prepare response
             Map<String, String> response = new HashMap<>();
-            String mockRefundId = "ref_" + UUID.randomUUID().toString().substring(0, 8);
-
-            response.put("refundTransactionId", mockRefundId);
-            response.put("status", "refunded");
+            response.put("refundTransactionId", refund.getId());
+            response.put("status", refund.getStatus());
             response.put("originalTransactionId", transactionId);
 
-            log.info("Refund processed with transaction ID: {}", mockRefundId);
+            log.info("Refund processed with transaction ID: {}", refund.getId());
             return response;
 
-        } catch (Exception e) {
+        } catch (StripeException e) {
             log.error("Error processing refund: {}", e.getMessage());
             throw new PaymentException("Failed to process refund: " + e.getMessage());
         }
@@ -97,14 +199,37 @@ public class StripePaymentGatewayService implements PaymentGatewayService {
     public void cancelPayment(String transactionId) {
         log.info("Cancelling payment for transaction: {}", transactionId);
         try {
-            // In a real implementation, you would use Stripe SDK
-            // For demonstration, we just log the cancellation
+            // Retrieve and cancel the payment intent
+            PaymentIntent paymentIntent = PaymentIntent.retrieve(transactionId);
+            if (paymentIntent.getStatus().equals("requires_payment_method") ||
+                    paymentIntent.getStatus().equals("requires_confirmation") ||
+                    paymentIntent.getStatus().equals("requires_action")) {
 
-            log.info("Payment cancelled for transaction ID: {}", transactionId);
-
-        } catch (Exception e) {
+                PaymentIntent canceledIntent = paymentIntent.cancel();
+                log.info("Payment cancelled for transaction ID: {}", canceledIntent.getId());
+            } else {
+                log.warn("Payment cannot be cancelled, status: {}", paymentIntent.getStatus());
+                throw new PaymentException("Cannot cancel payment with status: " + paymentIntent.getStatus());
+            }
+        } catch (StripeException e) {
             log.error("Error cancelling payment: {}", e.getMessage());
             throw new PaymentException("Failed to cancel payment: " + e.getMessage());
+        }
+    }
+
+    // Helper method to convert local reason to Stripe refund reason
+    private RefundCreateParams.Reason convertToStripeRefundReason(String reason) {
+        if (reason == null) {
+            return RefundCreateParams.Reason.REQUESTED_BY_CUSTOMER;
+        }
+
+        reason = reason.toLowerCase();
+        if (reason.contains("duplicate")) {
+            return RefundCreateParams.Reason.DUPLICATE;
+        } else if (reason.contains("fraud")) {
+            return RefundCreateParams.Reason.FRAUDULENT;
+        } else {
+            return RefundCreateParams.Reason.REQUESTED_BY_CUSTOMER;
         }
     }
 

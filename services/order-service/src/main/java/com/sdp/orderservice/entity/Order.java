@@ -63,6 +63,10 @@ public class Order {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    private long paymentId;
+    private String paymentLink;
+    private String errorMessage;
+
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "order_id")
     @Builder.Default

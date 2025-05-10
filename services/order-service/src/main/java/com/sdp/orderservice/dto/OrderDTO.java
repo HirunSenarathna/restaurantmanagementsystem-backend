@@ -28,6 +28,7 @@ public class OrderDTO {
     private String specialInstructions;
     private Boolean isPaid;
     private PaymentMethod paymentMethod;
+    private PaymentStatus paymentStatus;
     private String transactionId;
     private List<OrderItemDTO> items;
 

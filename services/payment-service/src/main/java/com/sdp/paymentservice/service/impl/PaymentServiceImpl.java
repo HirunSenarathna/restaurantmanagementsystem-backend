@@ -40,17 +40,12 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public PaymentResponse createPayment(PaymentRequest paymentRequest) {
+
         log.info("Creating payment for order: {}", paymentRequest.getOrderId());
 
         try {
-
-            log.info("in try block");
-            // Validate the order exists and get details
-            OrderDTO orderDTO = orderServiceClient.getOrderById(paymentRequest.getOrderId());
-
-            log.info("Order details: {}", orderDTO);
-
-            // Create payment entity
+            // Create payment entity directly from request
+            // We no longer need to validate the order exists via synchronous call
             Payment payment = Payment.builder()
                     .orderId(paymentRequest.getOrderId())
                     .customerId(paymentRequest.getCustomerId())
@@ -81,6 +76,9 @@ public class PaymentServiceImpl implements PaymentService {
                     savedPayment.setPaymentGatewayResponse(gatewayResponse.toString());
                     savedPayment = paymentRepository.save(savedPayment);
 
+                    // Publish event about payment link creation
+                    publishPaymentInitiatedEvent(savedPayment);
+
                     // Return response with payment link
                     return PaymentResponse.builder()
                             .paymentId(savedPayment.getId())
@@ -100,14 +98,115 @@ public class PaymentServiceImpl implements PaymentService {
                 // Update payment status to FAILED
                 savedPayment.setStatus(PaymentStatus.FAILED);
                 savedPayment.setPaymentGatewayResponse("Error: " + e.getMessage());
-                paymentRepository.save(savedPayment);
+                savedPayment = paymentRepository.save(savedPayment);
+
+                // Publish payment failed event
+                publishPaymentFailedEvent(savedPayment, e.getMessage());
 
                 throw new PaymentException("Payment initiation failed: " + e.getMessage());
             }
         } catch (Exception e) {
-            throw new ResourceNotFoundException("Order not found with ID: " + paymentRequest.getOrderId());
+            log.error("Error creating payment record: {}", e.getMessage());
+            throw new PaymentException("Payment creation failed: " + e.getMessage());
         }
 
+
+//        log.info("Creating payment for order: {}", paymentRequest.getOrderId());
+//
+//        try {
+//
+//            log.info("in try block");
+//            // Validate the order exists and get details
+//            OrderDTO orderDTO = orderServiceClient.getOrderById(paymentRequest.getOrderId());
+//
+//            log.info("Order details: {}", orderDTO);
+//
+//            // Create payment entity
+//            Payment payment = Payment.builder()
+//                    .orderId(paymentRequest.getOrderId())
+//                    .customerId(paymentRequest.getCustomerId())
+//                    .amount(paymentRequest.getAmount())
+//                    .status(PaymentStatus.PENDING)
+//                    .method(paymentRequest.getMethod())
+//                    .createdAt(LocalDateTime.now())
+//                    .build();
+//
+//            // Save initial payment record
+//            Payment savedPayment = paymentRepository.save(payment);
+//            log.info("Payment record created: {}", savedPayment);
+//
+//            try {
+//                // If it's an online payment, generate payment link
+//                if (paymentRequest.isOnline()) {
+//                    // Generate payment link through payment gateway
+//                    Map<String, String> gatewayResponse = paymentGateway.initiatePayment(
+//                            savedPayment.getId().toString(),
+//                            paymentRequest.getAmount(),
+//                            "Payment for Order #" + paymentRequest.getOrderId(),
+//                            paymentRequest.getReturnUrl()
+//                    );
+//
+//                    // Update payment with gateway response
+//                    savedPayment.setTransactionId(gatewayResponse.get("transactionId"));
+//                    savedPayment.setPaymentLink(gatewayResponse.get("paymentLink"));
+//                    savedPayment.setPaymentGatewayResponse(gatewayResponse.toString());
+//                    savedPayment = paymentRepository.save(savedPayment);
+//
+//                    // Return response with payment link
+//                    return PaymentResponse.builder()
+//                            .paymentId(savedPayment.getId())
+//                            .orderId(savedPayment.getOrderId())
+//                            .amount(savedPayment.getAmount())
+//                            .status(savedPayment.getStatus())
+//                            .paymentLink(savedPayment.getPaymentLink())
+//                            .transactionId(savedPayment.getTransactionId())
+//                            .message("Payment initiated successfully")
+//                            .build();
+//                } else {
+//                    // For in-person payments, process immediately
+//                    return processPayment(paymentRequest);
+//                }
+//            } catch (Exception e) {
+//                log.error("Error during payment creation: {}", e.getMessage());
+//                // Update payment status to FAILED
+//                savedPayment.setStatus(PaymentStatus.FAILED);
+//                savedPayment.setPaymentGatewayResponse("Error: " + e.getMessage());
+//                paymentRepository.save(savedPayment);
+//
+//                throw new PaymentException("Payment initiation failed: " + e.getMessage());
+//            }
+//        } catch (Exception e) {
+//            throw new ResourceNotFoundException("Order not found with ID: " + paymentRequest.getOrderId());
+//        }
+
+    }
+
+    // Helper methods to publish events
+    private void publishPaymentInitiatedEvent(Payment payment) {
+        PaymentInitiatedEvent event = PaymentInitiatedEvent.builder()
+                .paymentId(payment.getId())
+                .orderId(payment.getOrderId())
+                .paymentLink(payment.getPaymentLink())
+                .status(payment.getStatus())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        paymentEventProducer.publishPaymentInitiatedEvent(event);
+    }
+
+    private void publishPaymentFailedEvent(Payment payment, String errorMessage) {
+        PaymentFailedEvent event = PaymentFailedEvent.builder()
+                .paymentId(payment.getId())
+                .orderId(payment.getOrderId())
+                .customerId(payment.getCustomerId())
+                .amount(payment.getAmount())
+                .method(payment.getMethod())
+                .transactionId(payment.getTransactionId())
+                .errorMessage(errorMessage)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        paymentEventProducer.publishPaymentFailedEvent(event);
     }
 
     @Override
@@ -362,7 +461,7 @@ public class PaymentServiceImpl implements PaymentService {
                     .timestamp(LocalDateTime.now())
                     .build();
 
-            paymentEventProducer.publishPaymentRefundedEvent(event);
+//            paymentEventProducer.publishPaymentRefundedEvent(event);
 
             return PaymentResponse.builder()
                     .paymentId(refundedPayment.getId())
@@ -454,7 +553,7 @@ public class PaymentServiceImpl implements PaymentService {
                     .timestamp(LocalDateTime.now())
                     .build();
 
-            paymentEventProducer.publishPaymentCancelledEvent(event);
+//            paymentEventProducer.publishPaymentCancelledEvent(event);
 
             return PaymentResponse.builder()
                     .paymentId(cancelledPayment.getId())
@@ -470,178 +569,5 @@ public class PaymentServiceImpl implements PaymentService {
         }
     }
 
-//    private final PaymentRepository paymentRepository;
-//    private final PaymentGatewayService paymentGatewayService;
-//    private final OrderServiceClient orderServiceClient;
-//    private final PaymentEventProducer paymentEventProducer;
-//
-//    @Override
-//    @Transactional
-//    public PaymentResponse processPayment(PaymentRequest paymentRequest) {
-//        log.info("Processing payment for order ID: {}", paymentRequest.getOrderId());
-//
-//        // Validate order exists and get order details
-//        OrderDTO orderDTO = orderServiceClient.getOrderById(paymentRequest.getOrderId());
-//
-//        // Check if payment already exists for this order
-//        if (paymentRepository.findByOrderId(paymentRequest.getOrderId()).isPresent()) {
-//            throw new PaymentException("Payment for this order already exists");
-//        }
-//
-//        // Process payment through payment gateway
-//        String transactionId = null;
-//        boolean paymentSuccessful = false;
-//
-//        if (paymentRequest.getMethod() == PaymentMethod.CASH) {
-//            // Handle cash payment (processed by cashier)
-//            paymentSuccessful = true;
-//        } else {
-//            // Process online payment through payment gateway
-//            transactionId = paymentGatewayService.processPayment(paymentRequest);
-//            paymentSuccessful = transactionId != null && !transactionId.isEmpty();
-//        }
-//
-//        // Create payment record
-//        Payment payment = Payment.builder()
-//                .orderId(paymentRequest.getOrderId())
-//                .customerId(paymentRequest.getCustomerId())
-//                .amount(paymentRequest.getAmount())
-//                .method(paymentRequest.getMethod())
-//                .transactionId(transactionId)
-//                .status(paymentSuccessful ? PaymentStatus.COMPLETED : PaymentStatus.FAILED)
-//                .build();
-//
-//        Payment savedPayment = paymentRepository.save(payment);
-//
-//        // Publish payment event to Kafka
-//        paymentEventProducer.sendPaymentEvent(savedPayment);
-//
-//        // Return response
-//        return toPaymentResponse(
-//                savedPayment,
-//                paymentSuccessful ? "Payment processed successfully" : "Payment processing failed"
-//        );
-//    }
-//
-//    @Override
-//    public PaymentResponse getPaymentDetails(Long paymentId) {
-//        Payment payment = paymentRepository.findById(paymentId)
-//                .orElseThrow(() -> new ResourceNotFoundException("Payment not found with ID: " + paymentId));
-//
-//        return toPaymentResponse(payment);
-//    }
-//
-//    @Override
-//    public PaymentResponse getPaymentByOrderId(Long orderId) {
-//        Payment payment = paymentRepository.findByOrderId(orderId)
-//                .orElseThrow(() -> new ResourceNotFoundException("Payment not found for order ID: " + orderId));
-//
-//        return toPaymentResponse(payment);
-//    }
-//
-//    @Override
-//    public List<PaymentResponse> getCustomerPayments(Long customerId) {
-//        List<Payment> payments = paymentRepository.findByCustomerId(customerId);
-//
-//        return payments.stream()
-//                .map(this::toPaymentResponse)
-//                .collect(Collectors.toList());
-//    }
-//
-//    @Override
-//    public Page<PaymentResponse> getCustomerPaymentsPaginated(Long customerId, Pageable pageable) {
-//        Page<Payment> paymentsPage = paymentRepository.findByCustomerId(customerId, pageable);
-//
-//        return paymentsPage.map(this::toPaymentResponse);
-//    }
-//
-//    @Override
-//    @Transactional
-//    public PaymentResponse updatePaymentStatus(Long paymentId, PaymentStatus status) {
-//        Payment payment = paymentRepository.findById(paymentId)
-//                .orElseThrow(() -> new ResourceNotFoundException("Payment not found with ID: " + paymentId));
-//
-//        payment.setStatus(status);
-//        Payment updatedPayment = paymentRepository.save(payment);
-//
-//        // Publish payment status update event
-//        paymentEventProducer.sendPaymentEvent(updatedPayment);
-//
-//        return toPaymentResponse(updatedPayment);
-//    }
-//
-//    @Override
-//    @Transactional
-//    public PaymentResponse refundPayment(Long paymentId) {
-//        Payment payment = paymentRepository.findById(paymentId)
-//                .orElseThrow(() -> new ResourceNotFoundException("Payment not found with ID: " + paymentId));
-//
-//        if (payment.getStatus() != PaymentStatus.COMPLETED) {
-//            throw new PaymentException("Cannot refund a payment that is not completed");
-//        }
-//
-//        // Process refund through payment gateway if not cash
-//        if (payment.getMethod() != PaymentMethod.CASH) {
-//            boolean refundProcessed = paymentGatewayService.processRefund(payment.getTransactionId());
-//
-//            if (!refundProcessed) {
-//                throw new PaymentException("Failed to process refund through payment gateway");
-//            }
-//        }
-//
-//        payment.setStatus(PaymentStatus.REFUNDED);
-//        Payment updatedPayment = paymentRepository.save(payment);
-//
-//        // Publish payment refund event
-//        paymentEventProducer.sendPaymentEvent(updatedPayment);
-//
-//        return toPaymentResponse(updatedPayment);
-//    }
-//
-//    @Override
-//    public List<PaymentResponse> getPaymentsByDateRange(LocalDate startDate, LocalDate endDate) {
-//        LocalDateTime startDateTime = startDate.atStartOfDay();
-//        LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);
-//
-//        List<Payment> payments = paymentRepository.findByCreatedAtBetween(startDateTime, endDateTime);
-//
-//        return payments.stream()
-//                .map(this::toPaymentResponse)
-//                .collect(Collectors.toList());
-//    }
-//
-//    @Override
-//    public List<PaymentResponse> getPaymentsByEmployee(Long employeeId) {
-//        List<Payment> payments = paymentRepository.findByProcessedBy(employeeId);
-//
-//        return payments.stream()
-//                .map(this::toPaymentResponse)
-//                .collect(Collectors.toList());
-//    }
-//
-//    // Internal mapping methods
-//    private PaymentResponse toPaymentResponse(Payment payment) {
-//        if (payment == null) {
-//            return null;
-//        }
-//
-//        return PaymentResponse.builder()
-//                .paymentId(payment.getId())
-//                .orderId(payment.getOrderId())
-//                .customerId(payment.getCustomerId())
-//                .amount(payment.getAmount())
-////                .method(payment.getMethod())
-//                .status(payment.getStatus())
-//                .transactionId(payment.getTransactionId())
-//                .timestamp(payment.getCreatedAt())
-//                .build();
-//    }
-//
-//    private PaymentResponse toPaymentResponse(Payment payment, String message) {
-//        PaymentResponse response = toPaymentResponse(payment);
-//        if (response != null) {
-//            response.setMessage(message);
-//        }
-//        return response;
-//    }
+
 }

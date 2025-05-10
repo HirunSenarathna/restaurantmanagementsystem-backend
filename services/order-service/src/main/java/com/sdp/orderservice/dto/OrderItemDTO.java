@@ -1,5 +1,6 @@
 package com.sdp.orderservice.dto;
 
+import com.sdp.orderservice.entity.ItemSize;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,7 +18,7 @@ public class OrderItemDTO {
     private Long menuItemId;
     private String menuItemName;
     private String variant;
-//    private ItemSize size;
+    private ItemSize size;
     private Integer quantity;
     private BigDecimal unitPrice;
     private BigDecimal subTotal;

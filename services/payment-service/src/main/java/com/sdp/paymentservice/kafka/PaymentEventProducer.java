@@ -18,6 +18,44 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 public class PaymentEventProducer {
 
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+
+    @Value("${kafka.topics.payment-completed}")
+    private String paymentCompletedTopic;
+
+    @Value("${kafka.topics.payment-failed}")
+    private String paymentFailedTopic;
+
+    @Value("${kafka.topics.payment-initiated}")
+    private String paymentInitiatedTopic;
+
+    public void publishPaymentCompletedEvent(PaymentCompletedEvent event) {
+        try {
+            kafkaTemplate.send(paymentCompletedTopic, String.valueOf(event.getOrderId()), event);
+            log.info("Payment completed event published successfully for payment: {}", event.getPaymentId());
+        } catch (Exception e) {
+            log.error("Failed to publish payment completed event: {}", e.getMessage(), e);
+        }
+    }
+
+    public void publishPaymentFailedEvent(PaymentFailedEvent event) {
+        try {
+            kafkaTemplate.send(paymentFailedTopic, String.valueOf(event.getOrderId()), event);
+            log.info("Payment failed event published successfully for payment: {}", event.getPaymentId());
+        } catch (Exception e) {
+            log.error("Failed to publish payment failed event: {}", e.getMessage(), e);
+        }
+    }
+
+    public void publishPaymentInitiatedEvent(PaymentInitiatedEvent event) {
+        try {
+            kafkaTemplate.send(paymentInitiatedTopic, String.valueOf(event.getOrderId()), event);
+            log.info("Payment initiated event published successfully for payment: {}", event.getPaymentId());
+        } catch (Exception e) {
+            log.error("Failed to publish payment initiated event: {}", e.getMessage(), e);
+        }
+    }
+
 //    private final KafkaTemplate<String, Object> kafkaTemplate;
 //
 //    public void publishPaymentProcessedEvent(Payment payment) {
@@ -91,32 +129,32 @@ public class PaymentEventProducer {
 
     //v2
 
-    private final KafkaTemplate<String, Object> kafkaTemplate;
-
-    private static final String PAYMENT_COMPLETED_TOPIC = "payment-completed-events";
-    private static final String PAYMENT_FAILED_TOPIC = "payment-failed-events";
-    private static final String PAYMENT_REFUNDED_TOPIC = "payment-refunded-events";
-    private static final String PAYMENT_CANCELLED_TOPIC = "payment-cancelled-events";
-
-    public void publishPaymentCompletedEvent(PaymentCompletedEvent event) {
-        log.info("Publishing payment completed event: {}", event);
-        kafkaTemplate.send(PAYMENT_COMPLETED_TOPIC, event.getOrderId().toString(), event);
-    }
-
-    public void publishPaymentFailedEvent(PaymentFailedEvent event) {
-        log.info("Publishing payment failed event: {}", event);
-        kafkaTemplate.send(PAYMENT_FAILED_TOPIC, event.getOrderId().toString(), event);
-    }
-
-    public void publishPaymentRefundedEvent(PaymentRefundedEvent event) {
-        log.info("Publishing payment refunded event: {}", event);
-        kafkaTemplate.send(PAYMENT_REFUNDED_TOPIC, event.getOrderId().toString(), event);
-    }
-
-    public void publishPaymentCancelledEvent(PaymentCancelledEvent event) {
-        log.info("Publishing payment cancelled event: {}", event);
-        kafkaTemplate.send(PAYMENT_CANCELLED_TOPIC, event.getOrderId().toString(), event);
-    }
+//    private final KafkaTemplate<String, Object> kafkaTemplate;
+//
+//    private static final String PAYMENT_COMPLETED_TOPIC = "payment-completed-events";
+//    private static final String PAYMENT_FAILED_TOPIC = "payment-failed-events";
+//    private static final String PAYMENT_REFUNDED_TOPIC = "payment-refunded-events";
+//    private static final String PAYMENT_CANCELLED_TOPIC = "payment-cancelled-events";
+//
+//    public void publishPaymentCompletedEvent(PaymentCompletedEvent event) {
+//        log.info("Publishing payment completed event: {}", event);
+//        kafkaTemplate.send(PAYMENT_COMPLETED_TOPIC, event.getOrderId().toString(), event);
+//    }
+//
+//    public void publishPaymentFailedEvent(PaymentFailedEvent event) {
+//        log.info("Publishing payment failed event: {}", event);
+//        kafkaTemplate.send(PAYMENT_FAILED_TOPIC, event.getOrderId().toString(), event);
+//    }
+//
+//    public void publishPaymentRefundedEvent(PaymentRefundedEvent event) {
+//        log.info("Publishing payment refunded event: {}", event);
+//        kafkaTemplate.send(PAYMENT_REFUNDED_TOPIC, event.getOrderId().toString(), event);
+//    }
+//
+//    public void publishPaymentCancelledEvent(PaymentCancelledEvent event) {
+//        log.info("Publishing payment cancelled event: {}", event);
+//        kafkaTemplate.send(PAYMENT_CANCELLED_TOPIC, event.getOrderId().toString(), event);
+//    }
 
     //v1
 
