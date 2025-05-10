@@ -38,6 +38,10 @@ public class CustomerServiceImpl implements CustomerService {
             throw new IllegalArgumentException("Email already exists");
         }
 
+        if(userRepository.existsByPhone(request.getPhone())){
+            throw new IllegalArgumentException("Phone already exists");
+        }
+
         // Create and save new customer
         Customer customer = Customer.builder()
                 .firstname(request.getFirstname())
@@ -119,7 +123,7 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     private CustomerResponse mapToCustomerResponse(Customer customer) {
-        return (CustomerResponse) CustomerResponse.builder()
+        return CustomerResponse.builder()
                 .id(customer.getId())
                 .firstname(customer.getFirstname())
                 .lastname(customer.getLastname())
@@ -131,6 +135,5 @@ public class CustomerServiceImpl implements CustomerService {
                 .createdAt(customer.getCreatedAt())
                 .updatedAt(customer.getUpdatedAt())
                 .build();
-
     }
 }
