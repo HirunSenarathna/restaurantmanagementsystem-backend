@@ -31,5 +31,6 @@ public class OrderDTO {
     private PaymentStatus paymentStatus;
     private String transactionId;
     private List<OrderItemDTO> items;
+    private String paymentLink;
 
 }

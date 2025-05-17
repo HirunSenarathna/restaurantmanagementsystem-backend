@@ -11,6 +11,7 @@ import com.sdp.orderservice.entity.OrderStatus;
 import com.sdp.orderservice.exception.InsufficientItemQuantityException;
 import com.sdp.orderservice.exception.MenuItemNotFoundException;
 import com.sdp.orderservice.exception.OrderNotFoundException;
+import com.sdp.orderservice.exception.PaymentException;
 import com.sdp.orderservice.kafka.OrderCreatedEvent;
 import com.sdp.orderservice.kafka.OrderEventProducer;
 import com.sdp.orderservice.repository.OrderItemRepository;
@@ -40,12 +41,15 @@ import java.util.stream.Collectors;
 @Slf4j
 public class OrderServiceImpl implements OrderService {
 
-    private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final MenuServiceClient menuServiceClient;
     private final UserServiceClient userServiceClient;
     private final OrderEventProducer orderEventProducer;
     private final PaymentServiceClient paymentServiceClient;
+
+
+    private final OrderRepository orderRepository;
+
 
     @Override
     @Transactional
@@ -194,6 +198,8 @@ public class OrderServiceImpl implements OrderService {
                 .orderStatus(savedOrder.getOrderStatus())
                 .orderTime(savedOrder.getOrderTime())
                 .totalAmount(savedOrder.getTotalAmount())
+                .paymentId(savedOrder.getPaymentId())
+                .paymentLink(savedOrder.getPaymentLink())
 //                .items(mapToOrderItemDTOs(savedOrder.getItems()))
                 .message(requiresPayment ?
                         "Order placed successfully. Payment processing initiated." :
@@ -203,6 +209,8 @@ public class OrderServiceImpl implements OrderService {
         return response;
 
     }
+
+
 
     @Override
     @Transactional
@@ -504,6 +512,7 @@ public class OrderServiceImpl implements OrderService {
                 .isPaid(order.getIsPaid())
                 .paymentMethod(order.getPaymentMethod())
                 .transactionId(order.getTransactionId())
+                .paymentLink(order.getPaymentLink())
                 .items(itemDTOs)
                 .build();
     }

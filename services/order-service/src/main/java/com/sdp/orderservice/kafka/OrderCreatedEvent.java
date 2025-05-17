@@ -22,9 +22,21 @@ public class OrderCreatedEvent {
     private Long customerId;
     private BigDecimal totalAmount;
     private PaymentMethod paymentMethod;
-    private Boolean requiresPayment;
+    private boolean requiresPayment;
     private String returnUrl;  // For online payments
     private LocalDateTime orderTime;
+    private String paymentLink;
+    private String referenceId;
+
+//    private Long orderId;
+//    private Long customerId;
+//    private BigDecimal totalAmount;
+//    private PaymentMethod paymentMethod;
+//    private boolean requiresPayment;
+//    private String returnUrl;  // For online payments
+//    private LocalDateTime orderTime;
+//    private  String paymentLink;
+
 
 //    private Long orderId;
 //    private Long customerId;

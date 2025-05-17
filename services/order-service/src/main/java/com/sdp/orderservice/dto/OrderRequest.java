@@ -15,7 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 public class OrderRequest {
 
-    @NotNull(message = "Customer ID is required")
+//    @NotNull(message = "Customer ID is required")
     private Long customerId;
 
     private Long waiterId;

@@ -18,8 +18,13 @@ public class OrderEventConsumer {
     public void handleOrderCreatedEvent(OrderCreatedEvent event) {
         log.info("Received order created event: {}", event);
 
+        if (event.isPaymentInitiated()) {
+            log.info("Payment already initiated for order {}. Skipping payment creation.", event.getOrderId());
+            return;
+        }
+
         // Process only if payment is required
-        if (event.getRequiresPayment()) {
+        if (event.isRequiresPayment()) {
             try {
                 // Create payment request from event data
                 PaymentRequest paymentRequest = PaymentRequest.builder()

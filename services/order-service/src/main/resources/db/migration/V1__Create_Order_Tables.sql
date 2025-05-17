@@ -1,3 +1,48 @@
+
+-- Orders Table
+CREATE TABLE orders (
+                        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                        customer_id BIGINT,
+                        customer_name VARCHAR(255),
+                        error_message TEXT,
+                        is_paid BOOLEAN,
+                        order_status VARCHAR(50),
+                        order_time DATETIME,
+                        payment_id BIGINT,
+                        payment_link LONGTEXT,
+                        payment_method VARCHAR(100),
+                        payment_status VARCHAR(100),
+                        special_instructions TEXT,
+                        table_number INT,
+                        total_amount DECIMAL(19,2),
+                        transaction_id VARCHAR(255),
+                        updated_at DATETIME,
+                        waiter_id BIGINT,
+                        waiter_name VARCHAR(255)
+);
+
+-- Order Items Table
+CREATE TABLE order_items (
+                             id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                             created_at DATETIME,
+                             menu_item_id BIGINT,
+                             menu_item_name VARCHAR(255),
+                             menu_item_variant_id BIGINT,
+                             order_id BIGINT,
+                             quantity INT,
+                             size VARCHAR(100),
+                             special_instructions TEXT,
+                             sub_total DECIMAL(19,2),
+                             unit_price DECIMAL(19,2),
+                             updated_at DATETIME,
+                             variant VARCHAR(100),
+                             FOREIGN KEY (order_id) REFERENCES orders(id)
+);
+
+
+
+
+
 -- -- Create orders table first since order_items references it
 -- CREATE TABLE orders (
 --                         id BIGINT AUTO_INCREMENT PRIMARY KEY,

@@ -24,6 +24,7 @@ public class PaymentResponse {
     private PaymentMethod method;
     private String transactionId;
     private long processedBy;
+    private  String clientSecret;
     private String paymentLink;
     private String receiptUrl;
     private BigDecimal refundAmount;

@@ -45,7 +45,6 @@ public class PaymentServiceImpl implements PaymentService {
 
         try {
             // Create payment entity directly from request
-            // We no longer need to validate the order exists via synchronous call
             Payment payment = Payment.builder()
                     .orderId(paymentRequest.getOrderId())
                     .customerId(paymentRequest.getCustomerId())
@@ -60,6 +59,9 @@ public class PaymentServiceImpl implements PaymentService {
             log.info("Payment record created: {}", savedPayment);
 
             try {
+
+                log.info("Payment method: {}", paymentRequest.getMethod());
+                log.info(paymentRequest.isOnline() ? "Online payment" : "In-person payment");
                 // If it's an online payment, generate payment link
                 if (paymentRequest.isOnline()) {
                     // Generate payment link through payment gateway
@@ -110,74 +112,6 @@ public class PaymentServiceImpl implements PaymentService {
             throw new PaymentException("Payment creation failed: " + e.getMessage());
         }
 
-
-//        log.info("Creating payment for order: {}", paymentRequest.getOrderId());
-//
-//        try {
-//
-//            log.info("in try block");
-//            // Validate the order exists and get details
-//            OrderDTO orderDTO = orderServiceClient.getOrderById(paymentRequest.getOrderId());
-//
-//            log.info("Order details: {}", orderDTO);
-//
-//            // Create payment entity
-//            Payment payment = Payment.builder()
-//                    .orderId(paymentRequest.getOrderId())
-//                    .customerId(paymentRequest.getCustomerId())
-//                    .amount(paymentRequest.getAmount())
-//                    .status(PaymentStatus.PENDING)
-//                    .method(paymentRequest.getMethod())
-//                    .createdAt(LocalDateTime.now())
-//                    .build();
-//
-//            // Save initial payment record
-//            Payment savedPayment = paymentRepository.save(payment);
-//            log.info("Payment record created: {}", savedPayment);
-//
-//            try {
-//                // If it's an online payment, generate payment link
-//                if (paymentRequest.isOnline()) {
-//                    // Generate payment link through payment gateway
-//                    Map<String, String> gatewayResponse = paymentGateway.initiatePayment(
-//                            savedPayment.getId().toString(),
-//                            paymentRequest.getAmount(),
-//                            "Payment for Order #" + paymentRequest.getOrderId(),
-//                            paymentRequest.getReturnUrl()
-//                    );
-//
-//                    // Update payment with gateway response
-//                    savedPayment.setTransactionId(gatewayResponse.get("transactionId"));
-//                    savedPayment.setPaymentLink(gatewayResponse.get("paymentLink"));
-//                    savedPayment.setPaymentGatewayResponse(gatewayResponse.toString());
-//                    savedPayment = paymentRepository.save(savedPayment);
-//
-//                    // Return response with payment link
-//                    return PaymentResponse.builder()
-//                            .paymentId(savedPayment.getId())
-//                            .orderId(savedPayment.getOrderId())
-//                            .amount(savedPayment.getAmount())
-//                            .status(savedPayment.getStatus())
-//                            .paymentLink(savedPayment.getPaymentLink())
-//                            .transactionId(savedPayment.getTransactionId())
-//                            .message("Payment initiated successfully")
-//                            .build();
-//                } else {
-//                    // For in-person payments, process immediately
-//                    return processPayment(paymentRequest);
-//                }
-//            } catch (Exception e) {
-//                log.error("Error during payment creation: {}", e.getMessage());
-//                // Update payment status to FAILED
-//                savedPayment.setStatus(PaymentStatus.FAILED);
-//                savedPayment.setPaymentGatewayResponse("Error: " + e.getMessage());
-//                paymentRepository.save(savedPayment);
-//
-//                throw new PaymentException("Payment initiation failed: " + e.getMessage());
-//            }
-//        } catch (Exception e) {
-//            throw new ResourceNotFoundException("Order not found with ID: " + paymentRequest.getOrderId());
-//        }
 
     }
 
@@ -351,7 +285,8 @@ public class PaymentServiceImpl implements PaymentService {
                 .receiptUrl(updatedPayment.getReceiptUrl())
                 .message("Payment status updated to " + updatedPayment.getStatus())
                 .build();
-    }
+
+}
 
     @Override
     public PaymentResponse getPaymentById(Long paymentId) {
