@@ -30,7 +30,11 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     //
 
+    boolean existsByOrderId(Long orderId);
+
     Optional<Payment> findByTransactionId(String transactionId);
     List<Payment> findByStatusAndCreatedAtBetween(PaymentStatus status, LocalDateTime start, LocalDateTime end);
     Page<Payment> findByStatus(PaymentStatus status, Pageable pageable);
+
+    Optional<Payment> findByOrderIdAndTransactionId(Long orderId, String transactionId);
 }

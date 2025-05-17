@@ -20,6 +20,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/orders")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:4200")
 public class OrderController {
 
     private final OrderService orderService;
@@ -121,9 +122,6 @@ public class OrderController {
 
 
 
-
-
-
     @PutMapping("/{orderId}/pay")
     public ResponseEntity<OrderDTO> markOrderAsPaid(
             @PathVariable Long orderId,
@@ -140,6 +138,17 @@ public class OrderController {
     ) {
         return ResponseEntity.ok(orderService.processInPersonPayment(orderId, paymentRequest));
     }
+
+    @PutMapping("/{orderId}/payment-link")
+    public ResponseEntity<Void> updateOrderWithPaymentLink(
+            @PathVariable Long orderId,
+            @RequestParam Long paymentId,
+            @RequestParam String paymentLink
+    ) {
+        orderService.updateOrderWithPaymentLink(orderId, paymentId, paymentLink);
+        return ResponseEntity.noContent().build();
+    }
+
 
 
 }

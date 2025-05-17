@@ -58,6 +58,9 @@ public class Order {
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
 
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus paymentStatus;
+
     private String transactionId;
 
     @UpdateTimestamp
@@ -66,6 +69,8 @@ public class Order {
     private long paymentId;
     private String paymentLink;
     private String errorMessage;
+
+
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "order_id")

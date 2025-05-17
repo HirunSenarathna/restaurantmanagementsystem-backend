@@ -1,4 +1,4 @@
-package com.sdp.paymentservice.model;
+package com.sdp.orderservice.entity;
 
 public enum PaymentStatus {
 
