@@ -26,7 +26,4 @@ public class PaymentRequest {
     private String returnUrl;
     private Boolean isOnline;
 
-
-
-
 }

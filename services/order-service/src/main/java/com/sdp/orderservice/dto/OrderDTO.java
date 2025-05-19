@@ -32,5 +32,6 @@ public class OrderDTO {
     private String transactionId;
     private List<OrderItemDTO> items;
     private String paymentLink;
+    private boolean isOnline;
 
 }

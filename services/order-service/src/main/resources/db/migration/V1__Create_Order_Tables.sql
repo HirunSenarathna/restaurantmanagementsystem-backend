@@ -7,6 +7,7 @@ CREATE TABLE orders (
                         error_message TEXT,
                         is_paid BOOLEAN,
                         order_status VARCHAR(50),
+                        is_online BOOLEAN NOT NULL DEFAULT FALSE,
                         order_time DATETIME,
                         payment_id BIGINT,
                         payment_link LONGTEXT,

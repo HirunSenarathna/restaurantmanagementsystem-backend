@@ -29,11 +29,11 @@ public class OrderEventConsumer {
                 // Create payment request from event data
                 PaymentRequest paymentRequest = PaymentRequest.builder()
                         .orderId(event.getOrderId())
-                        .customerId(event.getCustomerId())
+                        .processedBy(event.getCustomerId())
                         .amount(event.getTotalAmount())
                         .method(event.getPaymentMethod())
                         .returnUrl(event.getReturnUrl())
-                        .isOnline(true)  // Assuming online payment for now
+                        .isOnline(true)
                         .build();
 
                 // Process payment asynchronously

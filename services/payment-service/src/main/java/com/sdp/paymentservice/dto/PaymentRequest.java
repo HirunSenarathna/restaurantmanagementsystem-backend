@@ -17,7 +17,7 @@ import java.math.BigDecimal;
 public class PaymentRequest {
 
     private Long orderId;
-    private Long customerId;
+//    private Long customerId;
 
     @NotNull(message = "Amount is required")
     private BigDecimal amount;
@@ -27,6 +27,7 @@ public class PaymentRequest {
 
     private String returnUrl;
     private boolean isOnline;
+    private Long processedBy;
 
 //    private Long orderId;
 //    private String customerId;

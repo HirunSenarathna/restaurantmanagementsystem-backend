@@ -17,13 +17,14 @@ public class PaymentFailedEvent {
 
     private Long paymentId;
     private Long orderId;
-    private Long customerId;
+//    private Long customerId;
     private BigDecimal amount;
     private PaymentMethod method;
     private String transactionId;
     private String errorMessage;
     private String errorCode;
     private LocalDateTime timestamp;
+    private Long processedBy;
 
     // Optional additional fields
     private Integer failureAttempt;   // Which attempt number this is

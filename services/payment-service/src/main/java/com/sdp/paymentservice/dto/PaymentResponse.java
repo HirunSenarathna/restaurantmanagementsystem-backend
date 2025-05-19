@@ -18,13 +18,14 @@ public class PaymentResponse {
 
     private Long paymentId;
     private Long orderId;
-    private Long customerId;
+//    private Long customerId;
     private BigDecimal amount;
     private PaymentStatus status;
     private PaymentMethod method;
     private String transactionId;
     private long processedBy;
     private  String clientSecret;
+    private  boolean isOnline;
     private String paymentLink;
     private String receiptUrl;
     private BigDecimal refundAmount;

@@ -149,6 +149,44 @@ public class OrderController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/online")
+    public ResponseEntity<List<OrderDTO>> getOnlineOrders() {
+        List<OrderDTO> orders = orderService.getOrdersByIsOnline(true);
+        return ResponseEntity.ok(orders);
+    }
+
+    @GetMapping("online/unpaid")
+    public ResponseEntity<List<OrderDTO>> getOnlineUnpaidOrders() {
+        List<OrderDTO> orders = orderService.getUnpaidOrdersByIsOnline(true);
+        return ResponseEntity.ok(orders);
+    }
+
+    @GetMapping("/in-person")
+    public ResponseEntity<List<OrderDTO>> getInPersonOrders() {
+        List<OrderDTO> orders = orderService.getOrdersByIsOnline(false);
+        return ResponseEntity.ok(orders);
+    }
+
+    @GetMapping("/online/paged")
+    public ResponseEntity<Page<OrderDTO>> getOnlineOrdersPaged(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<OrderDTO> orders = orderService.getOrdersByIsOnline(true, pageRequest);
+        return ResponseEntity.ok(orders);
+    }
+
+    @GetMapping("/in-person/paged")
+    public ResponseEntity<Page<OrderDTO>> getInPersonOrdersPaged(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<OrderDTO> orders = orderService.getOrdersByIsOnline(false, pageRequest);
+        return ResponseEntity.ok(orders);
+    }
+
+
+
 
 
 }

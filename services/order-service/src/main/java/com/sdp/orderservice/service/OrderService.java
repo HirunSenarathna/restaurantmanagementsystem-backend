@@ -42,9 +42,11 @@ public interface OrderService {
 
     OrderDTO processInPersonPayment(Long orderId, PaymentRequest paymentRequest);
 
-    void updateOrderPaymentStatus(Long orderId, boolean isPaid, PaymentMethod method, String transactionId);
+    void updateOrderPaymentStatus(Long orderId, boolean isPaid, PaymentMethod method, String transactionId, PaymentStatus paymentStatus);
     void recordPaymentFailure(Long orderId, String errorMessage);
     void updateOrderWithPaymentLink(Long orderId, Long paymentId, String paymentLink);
 
-
+    List<OrderDTO> getOrdersByIsOnline(boolean isOnline);
+    Page<OrderDTO> getOrdersByIsOnline(boolean isOnline, Pageable pageable);
+    List<OrderDTO> getUnpaidOrdersByIsOnline(boolean isOnline);
 }

@@ -25,8 +25,10 @@ public class OrderResponse {
     private List<OrderItemDTO> items;
     private String message;
 
+
     // Payment-related fields
     private Long paymentId;
     private String paymentLink;
     private PaymentStatus paymentStatus;
+    private boolean isOnline;
 }

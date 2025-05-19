@@ -47,10 +47,11 @@ public class PaymentServiceImpl implements PaymentService {
             // Create payment entity directly from request
             Payment payment = Payment.builder()
                     .orderId(paymentRequest.getOrderId())
-                    .customerId(paymentRequest.getCustomerId())
                     .amount(paymentRequest.getAmount())
                     .status(PaymentStatus.PENDING)
                     .method(paymentRequest.getMethod())
+                    .isOnline(paymentRequest.isOnline())
+                    .processedBy(paymentRequest.getProcessedBy())
                     .createdAt(LocalDateTime.now())
                     .build();
 
@@ -89,6 +90,7 @@ public class PaymentServiceImpl implements PaymentService {
                             .status(savedPayment.getStatus())
                             .paymentLink(savedPayment.getPaymentLink())
                             .transactionId(savedPayment.getTransactionId())
+                            .isOnline(savedPayment.isOnline())
                             .message("Payment initiated successfully")
                             .build();
                 } else {
@@ -132,7 +134,7 @@ public class PaymentServiceImpl implements PaymentService {
         PaymentFailedEvent event = PaymentFailedEvent.builder()
                 .paymentId(payment.getId())
                 .orderId(payment.getOrderId())
-                .customerId(payment.getCustomerId())
+                .processedBy(payment.getProcessedBy())
                 .amount(payment.getAmount())
                 .method(payment.getMethod())
                 .transactionId(payment.getTransactionId())
@@ -151,11 +153,13 @@ public class PaymentServiceImpl implements PaymentService {
         // For in-person payments like card payments at the restaurant
         Payment payment = Payment.builder()
                 .orderId(paymentRequest.getOrderId())
-                .customerId(paymentRequest.getCustomerId())
+                .processedBy(paymentRequest.getProcessedBy())
                 .amount(paymentRequest.getAmount())
                 .status(PaymentStatus.PROCESSING)
                 .method(paymentRequest.getMethod())
                 .createdAt(LocalDateTime.now())
+                .isOnline(paymentRequest.isOnline())
+                .processedBy(paymentRequest.getProcessedBy())
                 .build();
 
         // Save initial payment record
@@ -163,7 +167,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         try {
             // Process the payment through payment gateway
-            // For cash, we don't need to call the gateway
+
             if (paymentRequest.getMethod() != PaymentMethod.CASH) {
                 Map<String, String> gatewayResponse = paymentGateway.processPayment(
                         savedPayment.getId().toString(),
@@ -186,9 +190,10 @@ public class PaymentServiceImpl implements PaymentService {
             PaymentCompletedEvent event = PaymentCompletedEvent.builder()
                     .paymentId(savedPayment.getId())
                     .orderId(savedPayment.getOrderId())
-                    .customerId(savedPayment.getCustomerId())
+                    .processedBy(savedPayment.getProcessedBy())
                     .amount(savedPayment.getAmount())
                     .method(savedPayment.getMethod())
+                    .paymentStatus(savedPayment.getStatus())
                     .transactionId(savedPayment.getTransactionId())
                     .timestamp(LocalDateTime.now())
                     .build();
@@ -202,6 +207,7 @@ public class PaymentServiceImpl implements PaymentService {
                     .status(savedPayment.getStatus())
                     .transactionId(savedPayment.getTransactionId())
                     .receiptUrl(savedPayment.getReceiptUrl())
+                    .isOnline(savedPayment.isOnline())
                     .message("Payment processed successfully")
                     .build();
 
@@ -252,7 +258,8 @@ public class PaymentServiceImpl implements PaymentService {
             PaymentCompletedEvent event = PaymentCompletedEvent.builder()
                     .paymentId(updatedPayment.getId())
                     .orderId(updatedPayment.getOrderId())
-                    .customerId(updatedPayment.getCustomerId())
+                    .processedBy(updatedPayment.getProcessedBy())
+                    .paymentStatus(updatedPayment.getStatus())
                     .amount(updatedPayment.getAmount())
                     .method(updatedPayment.getMethod())
                     .transactionId(updatedPayment.getTransactionId())
@@ -265,7 +272,7 @@ public class PaymentServiceImpl implements PaymentService {
             PaymentFailedEvent event = PaymentFailedEvent.builder()
                     .paymentId(updatedPayment.getId())
                     .orderId(updatedPayment.getOrderId())
-                    .customerId(updatedPayment.getCustomerId())
+                    .processedBy(updatedPayment.getProcessedBy())
                     .amount(updatedPayment.getAmount())
                     .method(updatedPayment.getMethod())
                     .transactionId(updatedPayment.getTransactionId())
@@ -296,7 +303,7 @@ public class PaymentServiceImpl implements PaymentService {
         return PaymentResponse.builder()
                 .paymentId(payment.getId())
                 .orderId(payment.getOrderId())
-                .customerId(payment.getCustomerId())
+                .processedBy(payment.getProcessedBy())
                 .amount(payment.getAmount())
                 .status(payment.getStatus())
                 .method(payment.getMethod())
@@ -305,6 +312,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .receiptUrl(payment.getReceiptUrl())
                 .createdAt(payment.getCreatedAt())
                 .updatedAt(payment.getUpdatedAt())
+                .isOnline(payment.isOnline())
                 .build();
     }
 
@@ -316,7 +324,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .map(payment -> PaymentResponse.builder()
                         .paymentId(payment.getId())
                         .orderId(payment.getOrderId())
-                        .customerId(payment.getCustomerId())
+                        .processedBy(payment.getProcessedBy())
                         .amount(payment.getAmount())
                         .status(payment.getStatus())
                         .method(payment.getMethod())
@@ -330,14 +338,14 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public List<PaymentResponse> getPaymentsByCustomerId(Long customerId) {
-        List<Payment> payments = paymentRepository.findByCustomerId(customerId);
+    public List<PaymentResponse> getPaymentsByProcessedBy(Long processedBy) {
+        List<Payment> payments = paymentRepository.findByProcessedBy(processedBy);
 
         return payments.stream()
                 .map(payment -> PaymentResponse.builder()
                         .paymentId(payment.getId())
                         .orderId(payment.getOrderId())
-                        .customerId(payment.getCustomerId())
+                        .processedBy(payment.getProcessedBy())
                         .amount(payment.getAmount())
                         .status(payment.getStatus())
                         .method(payment.getMethod())
@@ -389,7 +397,7 @@ public class PaymentServiceImpl implements PaymentService {
             PaymentRefundedEvent event = PaymentRefundedEvent.builder()
                     .paymentId(refundedPayment.getId())
                     .orderId(refundedPayment.getOrderId())
-                    .customerId(refundedPayment.getCustomerId())
+                    .processedBy(refundedPayment.getProcessedBy())
                     .amount(refundedPayment.getAmount())
                     .refundAmount(refundedPayment.getRefundAmount())
                     .reason(refundedPayment.getRefundReason())
@@ -422,13 +430,14 @@ public class PaymentServiceImpl implements PaymentService {
                 .map(payment -> PaymentResponse.builder()
                         .paymentId(payment.getId())
                         .orderId(payment.getOrderId())
-                        .customerId(payment.getCustomerId())
+                        .processedBy(payment.getProcessedBy())
                         .amount(payment.getAmount())
                         .status(payment.getStatus())
                         .method(payment.getMethod())
                         .transactionId(payment.getTransactionId())
                         .createdAt(payment.getCreatedAt())
                         .updatedAt(payment.getUpdatedAt())
+                        .isOnline(payment.isOnline())
                         .build())
                 .collect(Collectors.toList());
 
@@ -484,7 +493,7 @@ public class PaymentServiceImpl implements PaymentService {
             PaymentCancelledEvent event = PaymentCancelledEvent.builder()
                     .paymentId(cancelledPayment.getId())
                     .orderId(cancelledPayment.getOrderId())
-                    .customerId(cancelledPayment.getCustomerId())
+                    .processedBy(cancelledPayment.getProcessedBy())
                     .timestamp(LocalDateTime.now())
                     .build();
 
