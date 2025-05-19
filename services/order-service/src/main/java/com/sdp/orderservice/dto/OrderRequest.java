@@ -18,6 +18,8 @@ public class OrderRequest {
 //    @NotNull(message = "Customer ID is required")
     private Long customerId;
 
+    private String customerName;
+
     private Long waiterId;
 
     private Integer tableNumber;
@@ -27,7 +29,9 @@ public class OrderRequest {
     @NotNull(message = "Payment method is required")
     private PaymentMethod paymentMethod;
 
+    private PaymentStatus paymentStatus;
 
+    private boolean isOnline;
 
     private String returnUrl;
 
@@ -49,6 +53,7 @@ public class OrderRequest {
         private Integer quantity;
 
         private String specialInstructions;
+
     }
 
 }

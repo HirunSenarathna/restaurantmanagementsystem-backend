@@ -63,10 +63,10 @@ public class StripeWebhookController {
                     handleCheckoutSessionCompleted(session);
                     break;
 
-//                case "payment_intent.succeeded":
-//                    PaymentIntent paymentIntent = (PaymentIntent) stripeObject;
-//                    handlePaymentIntentSucceeded(paymentIntent);
-//                    break;
+                case "payment_intent.succeeded":
+                    PaymentIntent paymentIntent = (PaymentIntent) stripeObject;
+                    handlePaymentIntentSucceeded(paymentIntent);
+                    break;
 
                 case "payment_intent.payment_failed":
                     PaymentIntent failedPaymentIntent = (PaymentIntent) stripeObject;

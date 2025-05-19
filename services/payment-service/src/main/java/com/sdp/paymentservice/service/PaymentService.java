@@ -39,7 +39,7 @@ public interface PaymentService {
     PaymentResponse handlePaymentCallback(String transactionId, String status, Map<String, String> gatewayParams);
     PaymentResponse getPaymentById(Long paymentId);
     List<PaymentResponse> getPaymentsByOrderId(Long orderId);
-    List<PaymentResponse> getPaymentsByCustomerId(Long customerId);
+    List<PaymentResponse> getPaymentsByProcessedBy(Long ProcessedBy);
     PaymentResponse refundPayment(Long paymentId, RefundRequest refundRequest);
     Page<PaymentResponse> getAllPayments(Pageable pageable);
     PaymentSummaryResponse getPaymentSummary(LocalDate date);

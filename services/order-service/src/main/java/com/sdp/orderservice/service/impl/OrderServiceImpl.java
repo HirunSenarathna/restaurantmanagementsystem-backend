@@ -57,13 +57,30 @@ public class OrderServiceImpl implements OrderService {
         log.info("Creating new order for customer: {}", orderRequest.getCustomerId());
         log.info("Order details: {}", orderRequest);
 
-        // 1. Verify customer exists
-        ResponseEntity<Map<String, Object>> customerResponse =
-                userServiceClient.getCustomerById(orderRequest.getCustomerId());
-        String customerName = customerResponse.getBody() != null ?
-                (String) customerResponse.getBody().get("firstname") : "Unknown Customer";
+//        // 1. Verify customer exists
+//        ResponseEntity<Map<String, Object>> customerResponse =
+//                userServiceClient.getCustomerById(orderRequest.getCustomerId());
+//        String customerName = customerResponse.getBody() != null ?
+//                (String) customerResponse.getBody().get("firstname") : "Unknown Customer";
+//
+//        log.info("Customer name: {}", customerName);
 
-        log.info("Customer name: {}", customerName);
+        // 1. Handle customer (registered or walk-in)
+        String customerName;
+        if (orderRequest.getCustomerId() != null) {
+            // Registered customer: Verify customer exists
+            ResponseEntity<Map<String, Object>> customerResponse =
+                    userServiceClient.getCustomerById(orderRequest.getCustomerId());
+            if (customerResponse.getBody() == null) {
+                throw new RuntimeException("Customer not found: " + orderRequest.getCustomerId());
+            }
+            customerName = (String) customerResponse.getBody().get("firstname");
+        } else {
+            // Walk-in customer: Use provided name or default
+            customerName = orderRequest.getCustomerName() != null
+                    ? orderRequest.getCustomerName()
+                    : "Walk-in Customer";
+        }
 
         // 2. Verify waiter exists if provided
         String waiterName = "Self Service";
@@ -86,6 +103,8 @@ public class OrderServiceImpl implements OrderService {
                 .specialInstructions(orderRequest.getSpecialInstructions())
                 .isPaid(false)
                 .paymentMethod(orderRequest.getPaymentMethod())
+                .paymentStatus(PaymentStatus.PENDING)
+                .isOnline(orderRequest.isOnline())
                 .totalAmount(BigDecimal.ZERO) // Will calculate after adding items
                 .build();
 
@@ -200,6 +219,7 @@ public class OrderServiceImpl implements OrderService {
                 .totalAmount(savedOrder.getTotalAmount())
                 .paymentId(savedOrder.getPaymentId())
                 .paymentLink(savedOrder.getPaymentLink())
+                .isOnline(savedOrder.isOnline())
 //                .items(mapToOrderItemDTOs(savedOrder.getItems()))
                 .message(requiresPayment ?
                         "Order placed successfully. Payment processing initiated." :
@@ -214,17 +234,26 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public void updateOrderPaymentStatus(Long orderId, boolean isPaid, PaymentMethod method, String transactionId) {
+    public void updateOrderPaymentStatus(Long orderId, boolean isPaid, PaymentMethod method, String transactionId, PaymentStatus paymentStatus) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderNotFoundException(orderId));
 
         order.setIsPaid(isPaid);
         order.setPaymentMethod(method);
         order.setTransactionId(transactionId);
+        order.setPaymentStatus(paymentStatus);
+
+        // Update order status based on payment status
+        if (isPaid && paymentStatus == PaymentStatus.COMPLETED) {
+            if (order.getOrderStatus() == OrderStatus.PLACED) {
+                order.setOrderStatus(OrderStatus.CONFIRMED); // Transition to CONFIRMED after payment
+            }
+        }
+
         order.setUpdatedAt(LocalDateTime.now());
 
         orderRepository.save(order);
-        log.info("Order {} payment status updated to paid", orderId);
+        log.info("Order {} payment status updated to paid with order status {}", orderId, order.getOrderStatus());
     }
 
     @Override
@@ -297,6 +326,27 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public List<OrderDTO> getOrdersByIsOnline(boolean isOnline) {
+        List<Order> orders = orderRepository.findByIsOnline(isOnline);
+        return orders.stream().map(this::mapToOrderDTO).collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<OrderDTO> getOrdersByIsOnline(boolean isOnline, Pageable pageable) {
+        Page<Order> orders = orderRepository.findByIsOnline(isOnline, pageable);
+        List<OrderDTO> orderDTOs = orders.getContent().stream()
+                .map(this::mapToOrderDTO)
+                .collect(Collectors.toList());
+        return new PageImpl<>(orderDTOs, pageable, orders.getTotalElements());
+    }
+
+    @Override
+    public List<OrderDTO> getUnpaidOrdersByIsOnline(boolean isOnline) {
+        List<Order> orders = orderRepository.findUnpaidOrdersByIsOnline(isOnline);
+        return orders.stream().map(this::mapToOrderDTO).collect(Collectors.toList());
+    }
+
+    @Override
     @Transactional
     public OrderDTO updateOrderStatus(OrderStatusUpdateDTO updateDTO) {
         Order order = orderRepository.findById(updateDTO.getOrderId())
@@ -326,17 +376,10 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderNotFoundException(orderId));
 
-        // Update payment status
-        order.setIsPaid(true);
-        order.setPaymentMethod(paymentMethod);
-        order.setTransactionId(transactionId);
+        // Update payment status via updateOrderPaymentStatus
+        updateOrderPaymentStatus(orderId, true, paymentMethod, transactionId, PaymentStatus.COMPLETED);
 
-        // If order was just placed, change status to CONFIRMED after payment
-        if (order.getOrderStatus() == OrderStatus.PLACED) {
-            order.setOrderStatus(OrderStatus.CONFIRMED);
-        }
-
-        Order updatedOrder = orderRepository.save(order);
+        Order updatedOrder = orderRepository.findById(orderId).get();
 
         // Publish order updated event
 //        orderEventProducer.publishOrderStatusUpdatedEvent(updatedOrder);
@@ -347,30 +390,42 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderDTO processInPersonPayment(Long orderId, PaymentRequest paymentRequest) {
+
+        log.info("Processing in-person payment for order: {}", orderId);
+
+        // Retrieve order
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderNotFoundException(orderId));
 
+        // Prevent duplicate payment
+        if (order.getIsPaid()) {
+            log.warn("Order {} is already paid.", orderId);
+            return mapToOrderDTO(order); // Return the current state of the order
+        }
+
         // Verify payment amount matches order amount
         if (paymentRequest.getAmount().compareTo(order.getTotalAmount()) != 0) {
-            throw new RuntimeException("Payment amount does not match order amount");
+            log.error("Payment amount {} does not match order amount {}",
+                    paymentRequest.getAmount(), order.getTotalAmount());
+            throw new PaymentException("Payment amount does not match order amount");
         }
 
-        // If it's a cash payment, just mark the order as paid
-        if (paymentRequest.getMethod() == PaymentMethod.CASH) {
-            return markOrderAsPaid(orderId, PaymentMethod.CASH, "CASH-" + System.currentTimeMillis());
-        } else {
-            // For card or other electronic payments, call payment service
-            paymentRequest.setOrderId(orderId);
-            paymentRequest.setIsOnline(false); // This is an in-person payment
+        // Set orderId and isOnline flag in payment request
+        paymentRequest.setOrderId(orderId);
+        paymentRequest.setIsOnline(false); // This is an in-person payment
 
-            PaymentResponse paymentResponse = paymentServiceClient.processPayment(paymentRequest);
+        // Process payment through PaymentService
+        PaymentResponse paymentResponse = paymentServiceClient.processPayment(paymentRequest);
+        log.info(paymentRequest.toString());
 
-            if (paymentResponse.getStatus() == PaymentStatus.COMPLETED) {
-                return markOrderAsPaid(orderId, paymentRequest.getMethod(), paymentResponse.getTransactionId());
-            } else {
-                throw new RuntimeException("Payment failed: " + paymentResponse.getMessage());
-            }
+        // Verify payment status
+        if (paymentResponse.getStatus() != PaymentStatus.COMPLETED) {
+            log.error("Payment failed for order {}: {}", orderId, paymentResponse.getMessage());
+            throw new PaymentException("Payment failed: " + paymentResponse.getMessage());
         }
+
+        // Mark order as paid
+        return markOrderAsPaid(orderId, paymentRequest.getMethod(), paymentResponse.getTransactionId());
     }
 
     @Override
@@ -514,6 +569,7 @@ public class OrderServiceImpl implements OrderService {
                 .transactionId(order.getTransactionId())
                 .paymentLink(order.getPaymentLink())
                 .items(itemDTOs)
+                .isOnline(order.isOnline())
                 .build();
     }
 

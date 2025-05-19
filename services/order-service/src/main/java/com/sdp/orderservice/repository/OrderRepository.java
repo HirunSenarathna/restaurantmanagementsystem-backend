@@ -54,4 +54,13 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             @Param("endDate") LocalDateTime endDate);
 
 
+    List<Order> findByIsOnline(boolean isOnline);
+    Page<Order> findByIsOnline(boolean isOnline, Pageable pageable);
+//    List<Order> findUnpaidOrdersByIsOnline(boolean isOnline);
+
+    @Query("SELECT o FROM Order o WHERE o.isOnline = :isOnline AND o.isPaid = false")
+    List<Order> findUnpaidOrdersByIsOnline(@Param("isOnline") boolean isOnline);
+
+
+
 }

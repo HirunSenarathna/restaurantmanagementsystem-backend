@@ -1,6 +1,7 @@
 package com.sdp.orderservice.entity;
 
 import com.sdp.orderservice.dto.PaymentMethod;
+import com.sdp.orderservice.dto.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,7 +27,7 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+//    @Column(nullable = false)
     private Long customerId;
 
     private String customerName;
@@ -35,7 +36,7 @@ public class Order {
 
     private String waiterName;
 
-    @Column(nullable = false)
+//    @Column(nullable = false)
     private Integer tableNumber;
 
     @Enumerated(EnumType.STRING)
@@ -57,6 +58,9 @@ public class Order {
 
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
+
+    @Column(nullable = false)
+    private boolean isOnline;
 
     @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus;

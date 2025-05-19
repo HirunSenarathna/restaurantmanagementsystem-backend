@@ -25,7 +25,8 @@ public class PaymentEventConsumer {
                     event.getOrderId(),
                     true,
                     event.getMethod(),
-                    event.getTransactionId()
+                    event.getTransactionId(),
+                    event.getPaymentStatus()
             );
         } catch (Exception e) {
             log.error("Error updating order payment status: {}", e.getMessage(), e);

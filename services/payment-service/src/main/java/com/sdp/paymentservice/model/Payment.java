@@ -22,7 +22,7 @@ public class Payment {
     private Long id;
 
     private Long orderId;
-    private Long customerId;
+//    private Long customerId;
     private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
@@ -30,6 +30,8 @@ public class Payment {
 
     @Enumerated(EnumType.STRING)
     private PaymentMethod method;
+
+    private boolean isOnline;
 
 
     @Column

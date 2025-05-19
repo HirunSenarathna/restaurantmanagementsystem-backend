@@ -1,10 +1,11 @@
 CREATE TABLE payments (
                           id BIGINT PRIMARY KEY AUTO_INCREMENT,
                           order_id BIGINT,
-                          customer_id BIGINT,
+--                           customer_id BIGINT,
                           amount DECIMAL(19,2),
                           status VARCHAR(50),
                           method VARCHAR(50),
+                          is_online BOOLEAN NOT NULL DEFAULT FALSE,
                           transaction_id VARCHAR(255),
                           payment_link TEXT,
                           payment_gateway_response TEXT,

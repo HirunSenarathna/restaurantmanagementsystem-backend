@@ -58,10 +58,10 @@ public class PaymentController {
         return ResponseEntity.ok(responses);
     }
 
-    @GetMapping("/customer/{customerId}")
-    public ResponseEntity<List<PaymentResponse>> getPaymentsByCustomerId(@PathVariable Long customerId) {
-        log.info("Fetching payments for customer: {}", customerId);
-        List<PaymentResponse> responses = paymentService.getPaymentsByCustomerId(customerId);
+    @GetMapping("/processedBy/{processedBy}")
+    public ResponseEntity<List<PaymentResponse>> getPaymentsByProcessedBy(@PathVariable Long processedBy) {
+        log.info("Fetching payments for customer: {}", processedBy);
+        List<PaymentResponse> responses = paymentService.getPaymentsByProcessedBy(processedBy);
         return ResponseEntity.ok(responses);
     }
 

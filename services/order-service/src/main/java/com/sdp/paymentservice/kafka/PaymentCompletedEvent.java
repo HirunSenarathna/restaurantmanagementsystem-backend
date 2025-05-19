@@ -1,6 +1,7 @@
 package com.sdp.paymentservice.kafka;
 
 import com.sdp.orderservice.dto.PaymentMethod;
+import com.sdp.orderservice.dto.PaymentStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,6 +20,7 @@ public class PaymentCompletedEvent {
     private Long customerId;
     private BigDecimal amount;
     private PaymentMethod method;
+    private PaymentStatus paymentStatus;
     private String transactionId;
     private LocalDateTime timestamp;
 }
