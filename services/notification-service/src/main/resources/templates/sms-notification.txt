@@ -1,0 +1,6 @@
+// sms-notification.txt
+${title}
+
+${content}
+
+- Restaurant Management System

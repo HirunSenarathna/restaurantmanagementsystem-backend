@@ -42,12 +42,14 @@ public class PaymentServiceImpl implements PaymentService {
     public PaymentResponse createPayment(PaymentRequest paymentRequest) {
 
         log.info("Creating payment for order: {}", paymentRequest.getOrderId());
+        log.info(paymentRequest.toString());
 
         try {
             // Create payment entity directly from request
             Payment payment = Payment.builder()
                     .orderId(paymentRequest.getOrderId())
                     .amount(paymentRequest.getAmount())
+                    .customerId(paymentRequest.getProcessedBy())
                     .status(PaymentStatus.PENDING)
                     .method(paymentRequest.getMethod())
                     .isOnline(paymentRequest.isOnline())
@@ -258,6 +260,7 @@ public class PaymentServiceImpl implements PaymentService {
             PaymentCompletedEvent event = PaymentCompletedEvent.builder()
                     .paymentId(updatedPayment.getId())
                     .orderId(updatedPayment.getOrderId())
+                    .customerId(updatedPayment.getCustomerId())
                     .processedBy(updatedPayment.getProcessedBy())
                     .paymentStatus(updatedPayment.getStatus())
                     .amount(updatedPayment.getAmount())

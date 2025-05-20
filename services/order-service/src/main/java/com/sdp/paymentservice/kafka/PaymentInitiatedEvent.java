@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 public class PaymentInitiatedEvent {
     private Long paymentId;
     private Long orderId;
+    private Long processedBy;
     private String paymentLink;
     private String transactionId;
     private PaymentStatus status;

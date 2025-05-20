@@ -22,4 +22,5 @@ public class PaymentInitiatedEvent {
     // Optional additional fields
     private Long customerId;
     private String method;
+    private Long processedBy;
 }

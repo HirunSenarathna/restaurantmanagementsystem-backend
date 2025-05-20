@@ -18,7 +18,7 @@ public class PaymentCompletedEvent {
 
     private Long paymentId;
     private Long orderId;
-//    private Long customerId;
+    private Long customerId;
     private Long processedBy;
     private BigDecimal amount;
     private PaymentMethod method;
