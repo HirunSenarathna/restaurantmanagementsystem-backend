@@ -6,6 +6,7 @@ import com.sdp.userservice.dto.Response.EmployeeResponse;
 import com.sdp.userservice.dto.Response.UserResponse;
 import com.sdp.userservice.entity.Customer;
 import com.sdp.userservice.entity.Employee;
+import com.sdp.userservice.entity.Role;
 import com.sdp.userservice.entity.User;
 
 import com.sdp.userservice.repository.UserRepository;
@@ -63,6 +64,13 @@ public class UserServiceImpl implements UserService {
             throw new EntityNotFoundException("User not found with id: " + id);
         }
         userRepository.deleteById(id);
+    }
+
+    @Override
+    public List<UserResponse> getAllUsersByRole(Role role) {
+        return userRepository.findByRole(role).stream()
+                .map(this::mapUserToResponse)
+                .collect(Collectors.toList());
     }
 
     private UserResponse mapUserToResponse(User user) {

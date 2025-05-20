@@ -1,5 +1,6 @@
 package com.sdp.userservice.repository;
 
+import com.sdp.userservice.entity.Role;
 import com.sdp.userservice.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -23,4 +24,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByPhone(String phone);
 
+    Optional<User> findByRole(Role role);
 }

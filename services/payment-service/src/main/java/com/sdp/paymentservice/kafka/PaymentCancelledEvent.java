@@ -15,7 +15,7 @@ public class PaymentCancelledEvent {
 
     private Long paymentId;
     private Long orderId;
-//    private Long customerId;
+    private Long customerId;
     private Long processedBy;
     private LocalDateTime timestamp;
 

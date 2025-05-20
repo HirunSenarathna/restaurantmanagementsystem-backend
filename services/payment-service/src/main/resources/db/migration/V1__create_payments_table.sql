@@ -1,7 +1,7 @@
 CREATE TABLE payments (
                           id BIGINT PRIMARY KEY AUTO_INCREMENT,
                           order_id BIGINT,
---                           customer_id BIGINT,
+                          customer_id BIGINT,
                           amount DECIMAL(19,2),
                           status VARCHAR(50),
                           method VARCHAR(50),

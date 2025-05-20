@@ -1,0 +1,76 @@
+server:
+  port: 8086
+
+spring:
+  application:
+    name: notification-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/notificationdb?createDatabaseIfNotExist=true
+    username: root
+    password: root123
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+    show-sql: true
+
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: notification-service-group
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+        spring.json.trusted.packages: "*"
+      producer:
+        key-serializer: org.apache.kafka.common.serialization.StringSerializer
+        value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+
+
+
+
+kafka:
+  topics:
+    order-created: order-created-topic
+    payment-initiated: payment-initiated-topic
+    payment-completed: payment-completed-topic
+    payment-failed: payment-failed-topic
+    menu-updated: menu-updated
+
+mail:
+  host: smtp.gmail.com
+  port: 587
+  username: hirunsenarathna@gmail.com
+  password: rdawycrewhbqgjpu
+  properties:
+    mail:
+      smtp:
+        auth: true
+        starttls:
+          enable: true
+        debug: true
+        connectiontimeout: 5000
+        timeout: 5000
+        writetimeout: 5000
+
+twilio:
+  account:
+    sid: AC0ecd53cb197200bf99a9b52a37022948
+  auth:
+    token: 97aa259ebcaaa003c1fcb280799c6324
+  phone:
+    number: +15756167697
+
+
+application:
+  config:
+    user-url: http://localhost:8080/api/users
+    order-url: http://localhost:8080/api/orders
