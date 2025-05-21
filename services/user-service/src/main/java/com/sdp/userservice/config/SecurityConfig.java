@@ -40,8 +40,8 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/api/customers/register","/api/customers/**" ,"/v3/api-docs/**", "/swagger-ui/**","/api/users/**").permitAll()
-                        .requestMatchers("/api/employees/**").hasAnyRole("OWNER","WAITER" ,"CASHIER")
+                        .requestMatchers("/api/auth/**", "/api/customers/register","/api/customers/**" ,"/v3/api-docs/**", "/swagger-ui/**","/api/users/**","/api/employees/**").permitAll()
+//                        .requestMatchers("/api/employees/**").hasAnyRole("OWNER","WAITER" ,"CASHIER")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

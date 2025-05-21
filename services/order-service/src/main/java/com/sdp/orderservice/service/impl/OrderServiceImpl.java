@@ -280,6 +280,24 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public List<OrderDTO> getAllOrders() {
+        List<Order> orders = orderRepository.findAll();
+        return orders.stream()
+                .map(this::mapToOrderDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<OrderDTO> getAllOrders(Pageable pageable) {
+        Page<Order> orderPage = orderRepository.findAll(pageable);
+        List<OrderDTO> orderDTOs = orderPage.getContent().stream()
+                .map(this::mapToOrderDTO)
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(orderDTOs, pageable, orderPage.getTotalElements());
+    }
+
+    @Override
     public OrderDTO getOrderById(Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderNotFoundException(orderId));
