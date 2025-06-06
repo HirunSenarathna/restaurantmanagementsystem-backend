@@ -584,6 +584,7 @@ public class OrderServiceImpl implements OrderService {
                 .specialInstructions(order.getSpecialInstructions())
                 .isPaid(order.getIsPaid())
                 .paymentMethod(order.getPaymentMethod())
+                .paymentStatus(order.getPaymentStatus())
                 .transactionId(order.getTransactionId())
                 .paymentLink(order.getPaymentLink())
                 .items(itemDTOs)
