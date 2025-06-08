@@ -389,6 +389,24 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public List<OrderDTO> getOrdersByPeriod(LocalDateTime start, LocalDateTime end) {
+        log.info("Fetching orders between {} and {}", start, end);
+        List<Order> orders = orderRepository.findByOrderTimeBetween(start, end);
+        return orders.stream()
+                .map(this::mapToOrderDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<OrderDTO> getOrdersByPeriodAndStatus(LocalDateTime start, LocalDateTime end, OrderStatus status) {
+        log.info("Fetching orders with status {} between {} and {}", status, start, end);
+        List<Order> orders = orderRepository.findByOrderTimeBetweenAndOrderStatus(start, end, status);
+        return orders.stream()
+                .map(this::mapToOrderDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     @Transactional
     public OrderDTO markOrderAsPaid(Long orderId, PaymentMethod paymentMethod, String transactionId) {
         Order order = orderRepository.findById(orderId)

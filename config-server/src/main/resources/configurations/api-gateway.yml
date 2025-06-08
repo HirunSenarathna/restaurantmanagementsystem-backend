@@ -12,6 +12,10 @@ spring:
 
 
       routes:
+        - id: analytics-service
+          uri: lb:http://analytics-service
+          predicates:
+            - Path=/api/analytics/**
 
         - id: user-users
           uri: lb:http://user-service
@@ -56,3 +60,7 @@ spring:
           uri: lb:http://notification-service
           predicates:
             - Path=/api/notifications/**
+
+
+
+

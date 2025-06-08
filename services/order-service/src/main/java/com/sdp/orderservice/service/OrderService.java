@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface OrderService {
@@ -28,6 +29,9 @@ public interface OrderService {
     Page<OrderDTO> getOrdersByStatus(OrderStatus status, Pageable pageable);
 
     OrderDTO updateOrderStatus(OrderStatusUpdateDTO orderStatusUpdateDTO);
+
+    List<OrderDTO> getOrdersByPeriod(LocalDateTime start, LocalDateTime end);
+    List<OrderDTO> getOrdersByPeriodAndStatus(LocalDateTime start, LocalDateTime end, OrderStatus status);
 
     void cancelOrder(Long orderId, Long userId);
 
