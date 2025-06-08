@@ -1,0 +1,37 @@
+server:
+  port: 8095
+
+spring:
+  application:
+    name: analytics-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/analyticsdb?useSSL=false&serverTimezone=UTC
+    username: root
+    password: root123
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: analytics-group
+      auto-offset-reset: earliest
+logging:
+  level:
+    org.springframework.security: INFO
+    com.sdp.analyticsservice: DEBUG
+    org.flywaydb: INFO
+    org.springframework.cloud.openfeign: DEBUG
+    feign: DEBUG
+
+
+application:
+  config:
+    menu-url: http://localhost:8080/api/menu
+    orders-url: http://localhost:8080/api/orders
+    customer-url: http://localhost:8080/api/customers
