@@ -84,7 +84,7 @@ public class MenuItemServiceImpl implements MenuItemService {
         // Handle base64 image upload if provided
         if (menuItemDTO.getImageBase64() != null && !menuItemDTO.getImageBase64().isEmpty()) {
             try {
-                // Remove data URL prefix if present (e.g., "data:image/png;base64,")
+                // Remove data URL prefix if present ("data:image/png;base64,")
                 String base64Data = menuItemDTO.getImageBase64().startsWith("data:image")
                         ? menuItemDTO.getImageBase64().substring(menuItemDTO.getImageBase64().indexOf(",") + 1)
                         : menuItemDTO.getImageBase64();

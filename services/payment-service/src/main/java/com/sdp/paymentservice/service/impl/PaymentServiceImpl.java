@@ -433,7 +433,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .map(payment -> PaymentResponse.builder()
                         .paymentId(payment.getId())
                         .orderId(payment.getOrderId())
-                        .processedBy(payment.getProcessedBy())
+                        .processedBy(payment.getProcessedBy() != null ? payment.getProcessedBy() : 0L)
                         .amount(payment.getAmount())
                         .status(payment.getStatus())
                         .method(payment.getMethod())
