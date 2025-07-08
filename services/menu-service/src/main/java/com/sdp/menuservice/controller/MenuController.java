@@ -25,8 +25,6 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/menu")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:4200",allowedHeaders = "*",
-        methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 
 public class MenuController {
 
@@ -45,13 +43,13 @@ public class MenuController {
     }
 
     @PostMapping("/categories")
-//    @PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<MenuCategoryDTO> createCategory(@Valid @RequestBody MenuCategoryDTO categoryDTO) {
         return new ResponseEntity<>(categoryService.createCategory(categoryDTO), HttpStatus.CREATED);
     }
 
     @PutMapping("/categories/{id}")
-//    @PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<MenuCategoryDTO> updateCategory(
             @PathVariable Long id,
             @Valid @RequestBody MenuCategoryDTO categoryDTO) {
@@ -59,7 +57,7 @@ public class MenuController {
     }
 
     @DeleteMapping("/categories/{id}")
-//    @PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
         categoryService.deleteCategory(id);
         return ResponseEntity.noContent().build();
@@ -67,7 +65,9 @@ public class MenuController {
 
     // Menu item endpoints
     @GetMapping("/items")
+//    @PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<List<MenuItemDTO>> getAllMenuItems() {
+        System.out.println("getAllMenuItems");
         return ResponseEntity.ok(menuItemService.getAllMenuItems());
     }
 
@@ -82,13 +82,13 @@ public class MenuController {
     }
 
     @PostMapping("/items")
-//    @PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<MenuItemDTO> createMenuItem(@Valid @RequestBody MenuItemRequestDTO menuItemDTO) {
         return new ResponseEntity<>(menuItemService.createMenuItem(menuItemDTO), HttpStatus.CREATED);
     }
 
     @PutMapping("/items/{id}")
-//    @PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasAnyRole('OWNER', 'WAITER')")
     public ResponseEntity<MenuItemDTO> updateMenuItem(
             @PathVariable Long id,
             @Valid @RequestBody MenuItemRequestDTO menuItemDTO) {
@@ -96,7 +96,7 @@ public class MenuController {
     }
 
     @DeleteMapping("/items/{id}")
-//    @PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<Void> deleteMenuItem(@PathVariable Long id) {
         menuItemService.deleteMenuItem(id);
         return ResponseEntity.noContent().build();
@@ -113,7 +113,7 @@ public class MenuController {
 
 
     @PutMapping("/items/{id}/variants/{variantId}/stock")
-//    @PreAuthorize("hasAnyRole('OWNER', 'WAITER')")
+    @PreAuthorize("hasAnyRole('OWNER', 'WAITER')")
     public ResponseEntity<MenuItemDTO> updateMenuItemStock(
             @PathVariable Long id,
             @PathVariable Long variantId,
@@ -122,7 +122,7 @@ public class MenuController {
     }
 
     @PutMapping("/items/{id}/availability")
-//    @PreAuthorize("hasAnyRole('OWNER', 'WAITER')")
+    @PreAuthorize("hasAnyRole('OWNER', 'WAITER')")
     public ResponseEntity<MenuItemDTO> updateMenuItemAvailability(
             @PathVariable Long id,
             @RequestParam boolean available) {

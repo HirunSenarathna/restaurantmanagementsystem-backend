@@ -12,4 +12,5 @@ import java.util.Map;
 public class MonthlySalesDto {
     private String month;
     private Map<String, Double> categories;
+    private double total;
 }

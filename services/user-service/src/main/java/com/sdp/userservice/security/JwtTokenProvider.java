@@ -21,6 +21,8 @@ import javax.crypto.SecretKey;
 
 
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Component
@@ -39,9 +41,14 @@ public class JwtTokenProvider {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtConfig.getExpirationMs());
         SecretKey key = getSigningKey();
+        // Collect authorities
+        List<String> roles = userDetails.getAuthorities().stream()
+                .map(grantedAuthority -> grantedAuthority.getAuthority())
+                .collect(Collectors.toList());
 
         return Jwts.builder()
                 .subject(userDetails.getUsername())
+                .claim("roles", roles)
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(key)

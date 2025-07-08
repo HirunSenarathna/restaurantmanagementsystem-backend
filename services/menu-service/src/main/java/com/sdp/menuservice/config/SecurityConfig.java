@@ -13,6 +13,11 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -25,31 +30,35 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints for customers (GET requests)
-//                        .requestMatchers(HttpMethod.GET, "/api/menu/items").permitAll()
-//                        .requestMatchers(HttpMethod.GET, "/api/menu/items/category/{categoryId}").permitAll()
-//                        .requestMatchers(HttpMethod.GET, "/api/menu/items/{id}").permitAll()
-//                        .requestMatchers(HttpMethod.GET, "/api/menu/categories").permitAll()
-//                        .requestMatchers(HttpMethod.GET, "/api/menu/categories/{id}").permitAll()
-//                        // Owner-only endpoints
-//                        .requestMatchers(HttpMethod.POST, "/api/menu/categories").hasRole("OWNER")
-//                        .requestMatchers(HttpMethod.PUT, "/api/menu/categories/{id}").hasRole("OWNER")
-//                        .requestMatchers(HttpMethod.DELETE, "/api/menu/categories/{id}").hasRole("OWNER")
-//                        .requestMatchers(HttpMethod.POST, "/api/menu/items").hasRole("OWNER")
-//                        .requestMatchers(HttpMethod.PUT, "/api/menu/items/{id}").hasRole("OWNER")
-//                        .requestMatchers(HttpMethod.DELETE, "/api/menu/items/{id}").hasRole("OWNER")
-//                        // Owner and Waiter endpoints
-//                        .requestMatchers(HttpMethod.PUT, "/api/menu/items/{id}/variants/{variantId}/stock").hasAnyRole("OWNER", "WAITER")
-//                        .requestMatchers(HttpMethod.PUT, "/api/menu/items/{id}/availability").hasAnyRole("OWNER", "WAITER")
-                                .requestMatchers("/api/menu/**").permitAll()
-                        // Any other authenticated request
+                        .requestMatchers(HttpMethod.GET, "/api/menu/items").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/menu/items/category/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/menu/items/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/menu/categories").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/menu/categories/**").permitAll()
+                        .requestMatchers("/api/menu/menu-item-variants/**").permitAll()
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:4200"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L); // 1 hour cache
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }

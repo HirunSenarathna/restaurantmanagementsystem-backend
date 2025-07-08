@@ -5,6 +5,7 @@ import com.sdp.analyticsservice.dto.DashboardAnalytics;
 import com.sdp.analyticsservice.dto.MonthlySalesDto;
 import com.sdp.analyticsservice.dto.TopProductDto;
 import com.sdp.analyticsservice.service.AnalyticsService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/analytics")
 @CrossOrigin(origins = "*")
@@ -27,7 +29,6 @@ public class AnalyticsController {
         return "hiii";
     }
     @GetMapping("/dashboard")
-//    @PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<DashboardAnalytics> getDashboardAnalytics() {
         try {
             DashboardAnalytics analytics = analyticsService.getDashboardAnalytics();
@@ -38,7 +39,7 @@ public class AnalyticsController {
     }
 
     @GetMapping("/sales-by-category")
-//    @PreAuthorize("hasRole('OWNER')")
+
     public ResponseEntity<List<CategorySalesDto>> getSalesByCategory() {
         try {
             List<CategorySalesDto> salesByCategory = analyticsService.getSalesByCategory();
@@ -49,7 +50,7 @@ public class AnalyticsController {
     }
 
     @GetMapping("/monthly-sales")
-//    @PreAuthorize("hasRole('OWNER')")
+
     public ResponseEntity<List<MonthlySalesDto>> getMonthlySales(
             @RequestParam(defaultValue = "12") int months) {
         try {
@@ -61,7 +62,7 @@ public class AnalyticsController {
     }
 
     @GetMapping("/top-products")
-//    @PreAuthorize("hasRole('OWNER')")
+
     public ResponseEntity<List<TopProductDto>> getTopProducts(
             @RequestParam(defaultValue = "3") int limit) {
         try {
@@ -122,6 +123,52 @@ public class AnalyticsController {
             double totalRevenue = analyticsService.getTotalRevenue();
             return ResponseEntity.ok(totalRevenue);
         } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/sales-by-category/filtered")
+    public ResponseEntity<List<CategorySalesDto>> getSalesByCategoryFiltered(
+            @RequestParam String filterType,
+            @RequestParam String filterValue) {
+        try {
+            List<CategorySalesDto> sales = analyticsService.getSalesByCategoryWithTimeFilter(filterType, filterValue);
+            return ResponseEntity.ok(sales);
+        } catch (Exception e) {
+            log.error("Error fetching filtered category sales: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/available-years")
+    public ResponseEntity<List<Integer>> getAvailableYears() {
+        try {
+            List<Integer> years = analyticsService.getAvailableYears();
+            return ResponseEntity.ok(years);
+        } catch (Exception e) {
+            log.error("Error fetching available years: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/sales-by-category/year/{year}")
+    public ResponseEntity<List<CategorySalesDto>> getSalesByCategoryByYear(@PathVariable String year) {
+        try {
+            List<CategorySalesDto> sales = analyticsService.getSalesByCategoryWithTimeFilter("year", year);
+            return ResponseEntity.ok(sales);
+        } catch (Exception e) {
+            log.error("Error fetching category sales by year: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/sales-by-category/month/{yearMonth}")
+    public ResponseEntity<List<CategorySalesDto>> getSalesByCategoryByMonth(@PathVariable String yearMonth) {
+        try {
+            List<CategorySalesDto> sales = analyticsService.getSalesByCategoryWithTimeFilter("month", yearMonth);
+            return ResponseEntity.ok(sales);
+        } catch (Exception e) {
+            log.error("Error fetching category sales by month: ", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

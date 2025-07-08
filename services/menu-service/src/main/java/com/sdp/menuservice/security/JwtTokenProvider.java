@@ -5,8 +5,11 @@ package com.sdp.menuservice.security;
 import com.sdp.menuservice.config.JwtConfig;
 import com.sdp.menuservice.exception.UnauthorizedException;
 import io.jsonwebtoken.*;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -16,6 +19,7 @@ import org.springframework.stereotype.Component;
 import io.jsonwebtoken.Jwts;
 
 
+import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -25,42 +29,28 @@ import java.util.stream.Collectors;
 public class JwtTokenProvider {
 
     private final JwtConfig jwtConfig;
-    private String secretKey;
+    private SecretKey secretKey;
 
     @PostConstruct
     public void init() {
-        this.secretKey = Base64.getEncoder().encodeToString(jwtConfig.getSecret().getBytes());
-    }
-
-    public String createToken(String username, List<String> roles) {
-        Claims claims = (Claims) Jwts.claims().setSubject(username);
-        claims.put("roles", roles);
-
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtConfig.getExpiration());
-
-        return Jwts.builder()
-                .setClaims(claims)
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
-                .signWith(SignatureAlgorithm.HS512, secretKey)
-                .compact();
+        byte[] keyBytes = Decoders.BASE64.decode(jwtConfig.getSecret());
+        this.secretKey = Keys.hmacShaKeyFor(keyBytes);
     }
 
     public Authentication getAuthentication(String token) {
         UserDetails userDetails = getUserDetailsFromToken(token);
-        return new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+        return new UsernamePasswordAuthenticationToken(
                 userDetails, "", userDetails.getAuthorities());
     }
 
     private UserDetails getUserDetailsFromToken(String token) {
         Claims claims = getClaimsFromToken(token);
         String username = claims.getSubject();
-        List<String> roles = (List<String>) claims.get("roles");
+        List<String> roles = claims.get("roles", List.class);
 
-        List<GrantedAuthority> authorities = roles.stream()
-                .map(SimpleGrantedAuthority::new)
-                .collect(Collectors.toList());
+        List<GrantedAuthority> authorities = roles != null
+                ? roles.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList())
+                : List.of();
 
         return new User(username, "", authorities);
     }
@@ -68,28 +58,26 @@ public class JwtTokenProvider {
     private Claims getClaimsFromToken(String token) {
         try {
             return Jwts.parser()
-                    .setSigningKey(secretKey)
+                    .verifyWith(secretKey)
                     .build()
-                    .parseClaimsJws(token)
-                    .getBody();
-        } catch (Exception e) {
+                    .parseSignedClaims(token)
+                    .getPayload();
+        } catch (JwtException | IllegalArgumentException e) {
             throw new UnauthorizedException("Invalid JWT token");
         }
     }
 
-
     public boolean validateToken(String token) {
         try {
             Jwts.parser()
-                    .setSigningKey(secretKey)
+                    .verifyWith(secretKey)
                     .build()
-                    .parseClaimsJws(token);
+                    .parseSignedClaims(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
             throw new UnauthorizedException("Invalid or expired JWT token");
         }
     }
-
 
     public String getUsernameFromToken(String token) {
         return getClaimsFromToken(token).getSubject();
